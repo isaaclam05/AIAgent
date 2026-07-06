@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Remi+</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<!-- Background (same system as index) -->
+<div class="background-blur blur1"></div>
+<div class="background-blur blur2"></div>
+
+<!-- NAVBAR (consistent across all pages) -->
+<header class="navbar">
+    <div class="container">
+
+        <a href="index.html" class="logo">
+            <div class="logo-circle">🤖</div>
+            <span>Remi+</span>
+        </a>
+
+        <nav class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="index.html#chat">AI Chat</a>
+            <a href="medication.html">Medications</a>
+            <a href="appointments.html">Appointments</a>
+            <a href="contact.html">Contact</a>
+        </nav>
+
+        <div class="nav-right">
+            <button class="theme-toggle">🌙</button>
+        </div>
+
+    </div>
+</header>
+
+<!-- LOGIN SECTION (same UI system as chat page) -->
+<section class="chat-section">
+    <div class="container">
+
+        <!-- TITLE -->
+        <div class="section-title">
+            <span>AUTHENTICATION</span>
+            <h2>Login to Remi+</h2>
+            <p>Access your AI assistant, medication tracker, and smart tools.</p>
+        </div>
+
+        <!-- LOGIN CARD -->
+        <div class="chat-container">
+
+            <div class="chat-header">
+
+                <div class="chat-user">
+                    <div class="chat-avatar">🔐</div>
+
+                    <div>
+                        <h3>Secure Login</h3>
+                        <span>● Encrypted Session</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="chat-messages">
+
+                <div class="bot-message markdown-body">
+
+                    <h3>👤 Welcome Back</h3>
+
+                    <p>Enter your credentials to continue.</p>
+
+                    <input type="text" placeholder="Username or Email">
+
+                    <input type="password" placeholder="Password">
+
+                    <button class="primary-btn" style="margin-top:15px;">
+                        Login
+                    </button>
+
+                    <hr>
+
+                    <p style="opacity:0.7; font-size:14px;">
+                        Don’t have an account? (Optional future feature)
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+</body>
+</html>

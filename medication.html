@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medications - Remi+</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="background-blur blur1"></div>
+<div class="background-blur blur2"></div>
+
+<header class="navbar">
+    <div class="container">
+
+        <a href="index.html" class="logo">
+            <div class="logo-circle">🤖</div>
+            <span>Remi+</span>
+        </a>
+
+        <nav class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="index.html#chat">AI Chat</a>
+            <a href="medication.html">Medications</a>
+            <a href="appointments.html">Appointments</a>
+            <a href="contact.html">Contact</a>
+        </nav>
+
+        <div class="nav-right">
+            <button class="theme-toggle">🌙</button>
+            <button class="login-btn">Login</button>
+        </div>
+
+    </div>
+</header>
+
+<section class="chat-section">
+    <div class="container">
+
+        <div class="section-title">
+            <span>MEDICATIONS</span>
+            <h2>Medication Management</h2>
+            <p>Track prescriptions and let Remi+ remind you intelligently.</p>
+        </div>
+
+        <div class="chat-container">
+
+            <div class="chat-header">
+                <div class="chat-user">
+                    <div class="chat-avatar">💊</div>
+                    <div>
+                        <h3>Medication Tracker</h3>
+                        <span>● Active</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-messages">
+
+                <div class="bot-message markdown-body">
+                    <h3>💊 Add New Medication</h3>
+                    <p>Enter your medication details below:</p>
+
+                    <input type="text" placeholder="Medication name">
+                    <input type="text" placeholder="Dosage (e.g. 500mg)">
+                    <input type="text" placeholder="Frequency (e.g. twice daily)">
+
+                    <button class="primary-btn" style="margin-top:15px;">
+                        Add Medication
+                    </button>
+                </div>
+
+                <div class="bot-message markdown-body">
+                    <h3>📋 Your Medications</h3>
+                    <p>No medications added yet.</p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+</body>
+</html>

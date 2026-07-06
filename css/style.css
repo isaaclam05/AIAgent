@@ -6720,3 +6720,32 @@ a{
 #userInput::-webkit-scrollbar-thumb:hover {
     background: rgba(255,255,255,.35);
 }
+
+.page-section {
+    padding: 120px 0;
+}
+
+.card {
+    background: rgba(255,255,255,0.05);
+    padding: 20px;
+    border-radius: 16px;
+    margin-top: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.card input,
+.card textarea {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+}
+
+.primary-btn {
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+}
