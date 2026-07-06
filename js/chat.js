@@ -830,12 +830,13 @@ function sleep(ms) {
 // Creates natural typing speed
 // ------------------------------------------------------
 
-function randomDelay(min = WORD_DELAY_MIN, max = WORD_DELAY_MAX) {
+function randomDelay(
+    min = TYPING.minDelay,
+    max = TYPING.maxDelay
+) {
 
     return Math.floor(
-
         Math.random() * (max - min + 1)
-
     ) + min;
 
 }
@@ -1879,13 +1880,11 @@ function extractReply(data) {
 
 async function waitThinking() {
 
-    if (!ENABLE_THINKING_DELAY) {
-
+    if (!THINKING.enabled) {
         return;
-
     }
 
-    await sleep(THINKING_TIME);
+    await sleep(THINKING.delay);
 
 }
 
@@ -1967,16 +1966,14 @@ async function askAI(prompt) {
 
         }
 
-        if (ENABLE_TYPING_ANIMATION) {
-
+        if (FEATURES.typingAnimation) {
+            
             await typeBotMessage(reply);
-
-        }
-
-        else {
-
+        
+        } else {
+            
             addBotMessage(reply);
-
+        
         }
 
         aiReady();
@@ -2116,7 +2113,7 @@ async function typeBotMessage(markdown) {
 
         if (/[.,!?;:]$/.test(words[i])) {
 
-            delay += 100;
+            delay += TYPING.punctuationDelay;
 
         }
 
@@ -3343,12 +3340,10 @@ function appendStreamingChunk(
 
 async function waitThinking() {
 
-    if (ENABLE_THINKING_DELAY <= 0) {
-
+    if (!THINKING.enabled) {
         return;
-
     }
 
-    await sleep(ENABLE_THINKING_DELAY);
+    await sleep(THINKING.delay);
 
 }
