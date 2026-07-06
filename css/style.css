@@ -6699,59 +6699,6 @@ a{
 
 }
 
-/* Firefox */
-#userInput {
-    scrollbar-width: thin;
-    scrollbar-color: #7b61ff transparent;
-}
-
-/* Chrome, Edge, Safari */
-#userInput::-webkit-scrollbar {
-    width: 8px;
-}
-
-#userInput::-webkit-scrollbar-track {
-    background: transparent;
-    border-radius: 20px;
-}
-
-#userInput::-webkit-scrollbar-thumb {
-    background: linear-gradient(
-        180deg,
-        #8b7dff,
-        #6d5ef9
-    );
-    border-radius: 20px;
-    border: 2px solid transparent;
-    background-clip: content-box;
-}
-
-#userInput::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(
-        180deg,
-        #9c8eff,
-        #7a6cff
-    );
-    background-clip: content-box;
-}
-
-#userInput::-webkit-scrollbar-corner {
-    background: transparent;
-}
-
-#userInput::-webkit-scrollbar {
-    width: 6px;
-}
-
-#userInput::-webkit-scrollbar-thumb {
-    background: rgba(125, 100, 255, 0.8);
-    border-radius: 999px;
-}
-
-#userInput::-webkit-scrollbar-track {
-    background: transparent;
-}
-
 #userInput {
     scrollbar-width: thin;
     scrollbar-color: rgba(255,255,255,.18) transparent;
