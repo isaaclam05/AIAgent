@@ -6904,7 +6904,7 @@ a{
 
         border-radius:50%;
 
-        background:#19c37d;
+        background: white;
 
         color:white !important;
 
@@ -6918,7 +6918,7 @@ a{
 
         margin-top:-45px;
 
-        border:6px solid white;
+        border:6px solid #6C63FF;
 
         box-shadow:0 10px 25px rgba(0,0,0,.2);
 
