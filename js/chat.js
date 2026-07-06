@@ -3424,3 +3424,50 @@ async function waitThinking() {
     await sleep(THINKING.delay);
 
 }
+
+// ======================================================
+// SECTION 6.6
+// AUTO LANGUAGE DETECTION
+// ======================================================
+
+function detectSpeechLanguage(text = "") {
+
+    // Chinese
+    if (/[\u4E00-\u9FFF]/.test(text)) {
+        return "zh-CN";
+    }
+
+    // Japanese
+    if (/[\u3040-\u30FF]/.test(text)) {
+        return "ja-JP";
+    }
+
+    // Korean
+    if (/[\uAC00-\uD7AF]/.test(text)) {
+        return "ko-KR";
+    }
+
+    // Thai
+    if (/[\u0E00-\u0E7F]/.test(text)) {
+        return "th-TH";
+    }
+
+    // Arabic
+    if (/[\u0600-\u06FF]/.test(text)) {
+        return "ar-SA";
+    }
+
+    // Hindi
+    if (/[\u0900-\u097F]/.test(text)) {
+        return "hi-IN";
+    }
+
+    // Russian
+    if (/[\u0400-\u04FF]/.test(text)) {
+        return "ru-RU";
+    }
+
+    // Default
+    return "en-US";
+
+}
