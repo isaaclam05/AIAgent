@@ -1,263 +1,601 @@
 // ======================================================
-// REMI+ AI AGENT
-// Version 4.0
-// Author: Isaac Lam
-// ======================================================
-//
-// This file is organised into independent sections.
-//
-// Every section has one responsibility only.
-// No duplicate functions.
-// No overwritten functions.
-// Production-ready architecture.
-//
-// ======================================================
-
-
-
-// ======================================================
 // SECTION 1
 // CONFIGURATION
 // ======================================================
 
 "use strict";
 
+/* -----------------------------------------------------
+   APPLICATION
+----------------------------------------------------- */
 
+const APP_NAME = "Remi+";
+const APP_VERSION = "4.0";
 
-// ------------------------------------------------------
-// APPLICATION INFORMATION
-// ------------------------------------------------------
-
-const APP_CONFIG = {
-
-    name: "Remi+",
-
-    version: "4.0",
-
-    author: "Isaac Lam",
-
-    environment: "production"
-
-};
-
-
-
-// ------------------------------------------------------
-// N8N WEBHOOK
-// ------------------------------------------------------
+/* -----------------------------------------------------
+   WEBHOOK
+----------------------------------------------------- */
 
 const WEBHOOK_URL =
-    "https://n8ngc.codeblazar.org/webhook/isaagen";
+"https://n8ngc.codeblazar.org/webhook/isaagen";
 
-
-
-// ------------------------------------------------------
-// LOCAL STORAGE KEYS
-// ------------------------------------------------------
+/* -----------------------------------------------------
+   STORAGE
+----------------------------------------------------- */
 
 const STORAGE_KEYS = {
 
-    SESSION_ID: "isaagen-session",
+    SESSION: "isaagen-session",
 
-    CHAT_HISTORY: "remiplus-chat-history",
+    CHAT: "remiplus-chat-history",
 
     THEME: "remiplus-theme"
 
 };
 
+/* -----------------------------------------------------
+   FEATURE FLAGS
+----------------------------------------------------- */
 
+const ENABLE_TYPING_ANIMATION = true;
 
-// ------------------------------------------------------
-// FEATURE FLAGS
-// Enable / Disable Features Easily
-// ------------------------------------------------------
+const ENABLE_THINKING_DELAY = true;
 
-const FEATURES = {
+const ENABLE_MARKDOWN = true;
 
-    typingAnimation: true,
+const ENABLE_CODE_HIGHLIGHT = true;
 
-    thinkingAnimation: true,
+const ENABLE_AUTO_SAVE = true;
 
-    speechRecognition: true,
+const ENABLE_RESTORE_HISTORY = true;
 
-    textToSpeech: true,
+const ENABLE_TEXT_TO_SPEECH = true;
 
-    markdown: true,
+const ENABLE_SPEECH_RECOGNITION = true;
 
-    syntaxHighlight: true,
+/* -----------------------------------------------------
+   TYPING
+----------------------------------------------------- */
 
-    autoSaveHistory: true,
+const MIN_TYPING_DELAY = 18;
 
-    restoreHistory: true,
+const MAX_TYPING_DELAY = 35;
 
-    smoothScroll: true,
+const PUNCTUATION_DELAY = 120;
 
-    toastNotifications: true
+/* -----------------------------------------------------
+   THINKING
+----------------------------------------------------- */
 
-};
+const THINKING_DELAY = 1000;
 
+/* -----------------------------------------------------
+   UI
+----------------------------------------------------- */
 
+const MAX_TEXTAREA_HEIGHT = 220;
 
-// ------------------------------------------------------
-// TYPING SETTINGS
-// ------------------------------------------------------
+const DEFAULT_TEXTAREA_HEIGHT = 56;
 
-const TYPING = {
+const TOAST_DURATION = 1800;
 
-    enabled: true,
+/* -----------------------------------------------------
+   STATE
+----------------------------------------------------- */
 
-    minDelay: 18,
+let isGenerating = false;
 
-    maxDelay: 35,
+let isListening = false;
 
-    punctuationDelay: 120
+let recognition = null;
 
-};
+let currentSpeech = null;
 
+let sessionId = null;
 
+/* -----------------------------------------------------
+   STARTUP
+----------------------------------------------------- */
 
-// ------------------------------------------------------
-// THINKING SETTINGS
-// ------------------------------------------------------
+console.log(`${APP_NAME} v${APP_VERSION} Loaded`);
 
-const THINKING = {
-
-    enabled: true,
-
-    delay: 1000
-
-};
-
-
-
-// ------------------------------------------------------
-// CHAT SETTINGS
-// ------------------------------------------------------
-
-const CHAT = {
-
-    maxTextareaHeight: 220,
-
-    defaultTextareaHeight: 56,
-
-    animationDuration: 250,
-
-    autoFocus: true
-
-};
-
-
-
-// ------------------------------------------------------
-// SPEECH SETTINGS
-// ------------------------------------------------------
-
-const SPEECH = {
-
-    language: "en-US",
-
-    rate: 1,
-
-    pitch: 1,
-
-    volume: 1,
-
-    continuous: false,
-
-    interimResults: true
-
-};
-
-
-
-// ------------------------------------------------------
-// UI SETTINGS
-// ------------------------------------------------------
-
-const UI = {
-
-    copySuccessDuration: 1200,
-
-    toastDuration: 1800,
-
-    scrollBehavior: "smooth"
-
-};
+// ======================================================
+// SECTION 2
+// GLOBAL STATE
+// ======================================================
 
 
 
 // ------------------------------------------------------
 // APPLICATION STATE
-// Never access DOM directly to check state.
-// Everything should be stored here.
 // ------------------------------------------------------
 
 const state = {
 
-    sessionId: null,
+    initialized: false,
 
     isGenerating: false,
 
     isListening: false,
 
+    isTyping: false,
+
     currentSpeech: null,
 
     recognition: null,
 
-    theme: "dark"
+    theme: "dark",
+
+    sessionId: null
 
 };
 
 
 
 // ------------------------------------------------------
-// STARTUP LOG
+// CHAT CACHE
 // ------------------------------------------------------
 
-console.log(
-    `%c${APP_CONFIG.name} v${APP_CONFIG.version}`,
-    "color:#6D5EF9;font-size:18px;font-weight:bold;"
-);
+const chat = {
 
-console.log(
-    "Configuration Loaded."
-);
+    history: [],
 
-console.log(
-    "Features:",
-    FEATURES
-);
+    messages: []
+
+};
 
 
-// ======================================================
-// SECTION 2
-// MARKDOWN & CODE HIGHLIGHT CONFIGURATION
-// ======================================================
 
 // ------------------------------------------------------
-// Library Validation
+// DOM CACHE
+// Filled during initialization
 // ------------------------------------------------------
 
-if (typeof marked === "undefined") {
+const dom = {};
 
-    throw new Error(
-        "Marked.js is not loaded."
+
+
+// ------------------------------------------------------
+// TIMER REFERENCES
+// ------------------------------------------------------
+
+const timers = {
+
+    typing: null,
+
+    thinking: null,
+
+    toast: null,
+
+    scroll: null
+
+};
+
+
+
+// ------------------------------------------------------
+// MESSAGE COUNTERS
+// ------------------------------------------------------
+
+let messageCounter = 0;
+
+
+
+// ------------------------------------------------------
+// SESSION
+// ------------------------------------------------------
+
+function createSessionId() {
+
+    return (
+
+        "session-" +
+
+        Date.now().toString(36) +
+
+        "-" +
+
+        Math.random()
+
+            .toString(36)
+
+            .substring(2, 10)
+
     );
 
 }
 
-if (typeof DOMPurify === "undefined") {
 
-    throw new Error(
-        "DOMPurify is not loaded."
+
+function getSessionId() {
+
+    if (state.sessionId) {
+
+        return state.sessionId;
+
+    }
+
+    const saved = localStorage.getItem(
+
+        STORAGE_KEYS.SESSION_ID
+
+    );
+
+    if (saved) {
+
+        state.sessionId = saved;
+
+        return saved;
+
+    }
+
+    const id = createSessionId();
+
+    state.sessionId = id;
+
+    localStorage.setItem(
+
+        STORAGE_KEYS.SESSION_ID,
+
+        id
+
+    );
+
+    return id;
+
+}
+
+
+
+// ------------------------------------------------------
+// MESSAGE ID
+// ------------------------------------------------------
+
+function nextMessageId() {
+
+    messageCounter++;
+
+    return `msg-${messageCounter}`;
+
+}
+
+
+
+// ------------------------------------------------------
+// APPLICATION READY
+// ------------------------------------------------------
+
+function setReady() {
+
+    state.initialized = true;
+
+}
+
+
+
+// ------------------------------------------------------
+// APPLICATION BUSY
+// ------------------------------------------------------
+
+function setGenerating(value) {
+
+    state.isGenerating = value;
+
+}
+
+
+
+// ------------------------------------------------------
+// CHECK BUSY
+// ------------------------------------------------------
+
+function isBusy() {
+
+    return state.isGenerating;
+
+}
+
+
+
+// ------------------------------------------------------
+// RESET SESSION
+// ------------------------------------------------------
+
+function resetSession() {
+
+    const id = createSessionId();
+
+    state.sessionId = id;
+
+    localStorage.setItem(
+
+        STORAGE_KEYS.SESSION_ID,
+
+        id
+
     );
 
 }
 
-if (typeof hljs === "undefined") {
+// ======================================================
+// SECTION 3
+// DOM REFERENCES
+// ======================================================
 
-    throw new Error(
-        "Highlight.js is not loaded."
+// ------------------------------------------------------
+// CACHE DOM ELEMENTS
+// ------------------------------------------------------
+
+function cacheDOM() {
+
+    // Chat Container
+    dom.chatContainer =
+        document.querySelector(".chat-container");
+
+    dom.messages =
+        document.getElementById("messages");
+
+
+
+    // Input Area
+    dom.userInput =
+        document.getElementById("userInput");
+
+    dom.sendButton =
+        document.getElementById("sendButton");
+
+    dom.micButton =
+        document.getElementById("micButton");
+
+    dom.clearChat =
+        document.getElementById("clearChat");
+
+
+
+    // Theme
+    dom.themeToggle =
+        document.getElementById("themeToggle");
+
+
+
+    // Voice Status
+    dom.voiceStatus =
+        document.getElementById("voiceStatus");
+
+
+
+    // Chat Header
+    dom.chatHeader =
+        document.querySelector(".chat-header");
+
+    dom.chatAvatar =
+        document.querySelector(".chat-avatar");
+
+
+
+    // Optional Elements
+    dom.chatForm =
+        document.getElementById("chatForm");
+
+    dom.fileInput =
+        document.getElementById("fileInput");
+
+    dom.imagePreview =
+        document.getElementById("imagePreview");
+
+    dom.exportButton =
+        document.getElementById("exportChat");
+
+    dom.importButton =
+        document.getElementById("importChat");
+
+}
+
+
+
+// ------------------------------------------------------
+// VERIFY REQUIRED ELEMENTS
+// ------------------------------------------------------
+
+function verifyDOM() {
+
+    const required = [
+
+        "messages",
+
+        "userInput",
+
+        "sendButton"
+
+    ];
+
+    for (const key of required) {
+
+        if (!dom[key]) {
+
+            console.error(
+
+                `Missing HTML element: ${key}`
+
+            );
+
+        }
+
+    }
+
+}
+
+
+
+// ------------------------------------------------------
+// SAFE DOM GETTER
+// ------------------------------------------------------
+
+function getElement(name) {
+
+    return dom[name] || null;
+
+}
+
+
+
+// ------------------------------------------------------
+// ENABLE ELEMENT
+// ------------------------------------------------------
+
+function enableElement(name) {
+
+    const element = getElement(name);
+
+    if (!element) return;
+
+    element.disabled = false;
+
+}
+
+
+
+// ------------------------------------------------------
+// DISABLE ELEMENT
+// ------------------------------------------------------
+
+function disableElement(name) {
+
+    const element = getElement(name);
+
+    if (!element) return;
+
+    element.disabled = true;
+
+}
+
+
+
+// ------------------------------------------------------
+// SHOW ELEMENT
+// ------------------------------------------------------
+
+function showElement(name) {
+
+    const element = getElement(name);
+
+    if (!element) return;
+
+    element.classList.remove("hidden");
+
+}
+
+
+
+// ------------------------------------------------------
+// HIDE ELEMENT
+// ------------------------------------------------------
+
+function hideElement(name) {
+
+    const element = getElement(name);
+
+    if (!element) return;
+
+    element.classList.add("hidden");
+
+}
+
+
+
+// ------------------------------------------------------
+// SET TEXT
+// ------------------------------------------------------
+
+function setText(name, text) {
+
+    const element = getElement(name);
+
+    if (!element) return;
+
+    element.textContent = text;
+
+}
+
+
+
+// ------------------------------------------------------
+// SET HTML
+// ------------------------------------------------------
+
+function setHTML(name, html) {
+
+    const element = getElement(name);
+
+    if (!element) return;
+
+    element.innerHTML = html;
+
+}
+
+
+
+// ------------------------------------------------------
+// CLEAR ELEMENT
+// ------------------------------------------------------
+
+function clearElement(name) {
+
+    const element = getElement(name);
+
+    if (!element) return;
+
+    element.innerHTML = "";
+
+}
+
+// ======================================================
+// SECTION 4
+// UTILITY FUNCTIONS
+// ======================================================
+
+
+
+// ------------------------------------------------------
+// SLEEP
+// ------------------------------------------------------
+
+function sleep(ms) {
+
+    return new Promise(resolve => setTimeout(resolve, ms));
+
+}
+
+
+
+// ------------------------------------------------------
+// RANDOM INTEGER
+// ------------------------------------------------------
+
+function random(min, max) {
+
+    return Math.floor(
+
+        Math.random() * (max - min + 1)
+
+    ) + min;
+
+}
+
+
+
+// ------------------------------------------------------
+// RANDOM TYPING DELAY
+// ------------------------------------------------------
+
+function randomDelay() {
+
+    return random(
+
+        TYPING.minDelay,
+
+        TYPING.maxDelay
+
     );
 
 }
@@ -265,54 +603,776 @@ if (typeof hljs === "undefined") {
 
 
 // ------------------------------------------------------
-// Configure Marked
+// CURRENT TIME
 // ------------------------------------------------------
 
-marked.setOptions({
+function currentTime() {
 
-    gfm: true,
+    return new Date().toLocaleTimeString([], {
 
-    breaks: true,
+        hour: "2-digit",
 
-    headerIds: false,
+        minute: "2-digit"
 
-    mangle: false
+    });
 
-});
+}
 
 
 
 // ------------------------------------------------------
-// Configure Highlight.js
+// CURRENT DATE
 // ------------------------------------------------------
 
-hljs.configure({
+function currentDate() {
 
-    ignoreUnescapedHTML: true,
+    return new Date().toLocaleDateString();
 
-    throwUnescapedHTML: false
-
-});
+}
 
 
+
+// ------------------------------------------------------
+// UNIQUE ID
+// ------------------------------------------------------
+
+function uuid() {
+
+    return (
+
+        Date.now().toString(36) +
+
+        Math.random()
+
+            .toString(36)
+
+            .substring(2, 10)
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// DEBOUNCE
+// ------------------------------------------------------
+
+function debounce(callback, delay = 300) {
+
+    let timeout;
+
+    return (...args) => {
+
+        clearTimeout(timeout);
+
+        timeout = setTimeout(() => {
+
+            callback(...args);
+
+        }, delay);
+
+    };
+
+}
+
+
+
+// ------------------------------------------------------
+// THROTTLE
+// ------------------------------------------------------
+
+function throttle(callback, limit = 200) {
+
+    let waiting = false;
+
+    return (...args) => {
+
+        if (waiting) return;
+
+        callback(...args);
+
+        waiting = true;
+
+        setTimeout(() => {
+
+            waiting = false;
+
+        }, limit);
+
+    };
+
+}
+
+
+
+// ------------------------------------------------------
+// SMOOTH SCROLL TO BOTTOM
+// ------------------------------------------------------
+
+function scrollToBottom() {
+
+    if (!dom.messages) return;
+
+    dom.messages.scrollTo({
+
+        top: dom.messages.scrollHeight,
+
+        behavior: UI.scrollBehavior
+
+    });
+
+}
+
+
+
+// ------------------------------------------------------
+// INSTANT SCROLL
+// ------------------------------------------------------
+
+function scrollBottomInstant() {
+
+    if (!dom.messages) return;
+
+    dom.messages.scrollTop =
+
+        dom.messages.scrollHeight;
+
+}
+
+
+
+// ------------------------------------------------------
+// SAFE SCROLL
+// ------------------------------------------------------
+
+function safeScrollBottom() {
+
+    requestAnimationFrame(() => {
+
+        scrollToBottom();
+
+    });
+
+}
+
+
+
+// ------------------------------------------------------
+// COPY TEXT
+// ------------------------------------------------------
+
+async function copyText(text) {
+
+    try {
+
+        await navigator.clipboard.writeText(text);
+
+        showToast("Copied");
+
+        return true;
+
+    }
+
+    catch {
+
+        showToast("Copy Failed");
+
+        return false;
+
+    }
+
+}
+
+
+
+// ------------------------------------------------------
+// DOWNLOAD FILE
+// ------------------------------------------------------
+
+function download(filename, content) {
+
+    const blob = new Blob(
+
+        [content],
+
+        {
+
+            type: "text/plain"
+
+        }
+
+    );
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+
+    a.href = url;
+
+    a.download = filename;
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+}
+
+
+
+// ------------------------------------------------------
+// SHOW TOAST
+// ------------------------------------------------------
+
+function showToast(message) {
+
+    if (!FEATURES.toastNotifications) {
+
+        return;
+
+    }
+
+    let toast =
+
+        document.querySelector(".toast");
+
+    if (!toast) {
+
+        toast = document.createElement("div");
+
+        toast.className = "toast";
+
+        document.body.appendChild(toast);
+
+    }
+
+    toast.textContent = message;
+
+    toast.classList.add("show");
+
+    clearTimeout(timers.toast);
+
+    timers.toast = setTimeout(() => {
+
+        toast.classList.remove("show");
+
+    }, UI.toastDuration);
+
+}
+
+
+
+// ------------------------------------------------------
+// AUTO RESIZE TEXTAREA
+// ------------------------------------------------------
+
+function autoResizeTextarea() {
+
+    if (!dom.userInput) return;
+
+    dom.userInput.style.height = "auto";
+
+    dom.userInput.style.height =
+
+        Math.min(
+
+            dom.userInput.scrollHeight,
+
+            CHAT.maxTextareaHeight
+
+        ) + "px";
+
+}
+
+
+
+// ------------------------------------------------------
+// RESET TEXTAREA
+// ------------------------------------------------------
+
+function resetTextarea() {
+
+    if (!dom.userInput) return;
+
+    dom.userInput.value = "";
+
+    dom.userInput.style.height =
+
+        CHAT.defaultTextareaHeight + "px";
+
+}
+
+
+
+// ------------------------------------------------------
+// LOCK INPUT
+// ------------------------------------------------------
+
+function lockInput() {
+
+    dom.userInput.disabled = true;
+
+    dom.sendButton.disabled = true;
+
+    if (dom.micButton) {
+
+        dom.micButton.disabled = true;
+
+    }
+
+}
+
+
+
+// ------------------------------------------------------
+// UNLOCK INPUT
+// ------------------------------------------------------
+
+function unlockInput() {
+
+    dom.userInput.disabled = false;
+
+    dom.sendButton.disabled = false;
+
+    if (dom.micButton) {
+
+        dom.micButton.disabled = false;
+
+    }
+
+    dom.userInput.focus();
+
+}
+
+
+
+// ------------------------------------------------------
+// TRIM INPUT
+// ------------------------------------------------------
+
+function cleanInput(text) {
+
+    return text.trim();
+
+}
+
+
+
+// ------------------------------------------------------
+// EMPTY CHECK
+// ------------------------------------------------------
+
+function isEmpty(text) {
+
+    return cleanInput(text).length === 0;
+
+}
+
+
+
+// ------------------------------------------------------
+// SAFE JSON PARSE
+// ------------------------------------------------------
+
+function safeJSON(text) {
+
+    try {
+
+        return JSON.parse(text);
+
+    }
+
+    catch {
+
+        return null;
+
+    }
+
+}
+
+
+
+// ------------------------------------------------------
+// ESCAPE HTML
+// ------------------------------------------------------
+
+function escapeHTML(text) {
+
+    const div = document.createElement("div");
+
+    div.textContent = text;
+
+    return div.innerHTML;
+
+}
 
 // ======================================================
-// MARKDOWN RENDERER
+// SECTION 5
+// APPLICATION INITIALIZATION
 // ======================================================
 
-function renderMarkdown(markdown = "") {
 
-    if (!FEATURES.markdown) {
 
-        return escapeHTML(markdown);
+// ------------------------------------------------------
+// INITIALIZE APPLICATION
+// ------------------------------------------------------
+
+async function initializeApp() {
+
+    if (state.initialized) {
+
+        return;
+
+    }
+
+    console.log("Initializing Remi+...");
+
+
+
+    // Cache DOM
+
+    cacheDOM();
+
+    verifyDOM();
+
+
+
+    // Session
+
+    getSessionId();
+
+
+
+    // Theme
+
+    initializeTheme();
+
+
+
+    // Restore History
+
+    if (FEATURES.restoreHistory) {
+
+        restoreChatHistory();
+
+    }
+
+
+
+    // Register Events
+
+    registerEventListeners();
+
+
+
+    // Prepare Input
+
+    resetTextarea();
+
+
+
+    if (CHAT.autoFocus && dom.userInput) {
+
+        dom.userInput.focus();
+
+    }
+
+
+
+    // Welcome Message
+
+    if (dom.messages && dom.messages.children.length === 0) {
+
+        addBotMessage(
+
+`# 👋 Welcome to Remi+
+
+I'm your AI assistant.
+
+You can ask me anything.
+
+- 💡 General Questions
+- 💻 Programming
+- 📊 Data Analysis
+- ✍️ Writing
+- 🌐 Research
+
+How can I help you today?`
+
+        );
+
+    }
+
+
+
+    setReady();
+
+    console.log("Remi+ Ready.");
+
+}
+
+
+
+// ------------------------------------------------------
+// START APPLICATION
+// ------------------------------------------------------
+
+function startApplication() {
+
+    initializeApp()
+
+        .catch(error => {
+
+            console.error(
+
+                "Initialization Error:",
+
+                error
+
+            );
+
+        });
+
+}
+
+
+
+// ------------------------------------------------------
+// PAGE READY
+// ------------------------------------------------------
+
+if (
+
+    document.readyState === "loading"
+
+) {
+
+    document.addEventListener(
+
+        "DOMContentLoaded",
+
+        startApplication
+
+    );
+
+}
+
+else {
+
+    startApplication();
+
+}
+
+
+
+// ------------------------------------------------------
+// WINDOW FOCUS
+// ------------------------------------------------------
+
+window.addEventListener(
+
+    "focus",
+
+    () => {
+
+        if (
+
+            dom.userInput &&
+
+            !state.isGenerating
+
+        ) {
+
+            dom.userInput.focus();
+
+        }
+
+    }
+
+);
+
+
+
+// ------------------------------------------------------
+// BEFORE UNLOAD
+// ------------------------------------------------------
+
+window.addEventListener(
+
+    "beforeunload",
+
+    () => {
+
+        if (
+
+            FEATURES.autoSaveHistory
+
+        ) {
+
+            saveChatHistory();
+
+        }
+
+    }
+
+);
+
+
+
+// ------------------------------------------------------
+// WINDOW ERROR
+// ------------------------------------------------------
+
+window.addEventListener(
+
+    "error",
+
+    event => {
+
+        console.error(
+
+            "Runtime Error:",
+
+            event.error
+
+        );
+
+    }
+
+);
+
+
+
+// ------------------------------------------------------
+// UNHANDLED PROMISES
+// ------------------------------------------------------
+
+window.addEventListener(
+
+    "unhandledrejection",
+
+    event => {
+
+        console.error(
+
+            "Unhandled Promise:",
+
+            event.reason
+
+        );
+
+    }
+
+);
+
+
+
+// ------------------------------------------------------
+// CONNECTION STATUS
+// ------------------------------------------------------
+
+window.addEventListener(
+
+    "online",
+
+    () => {
+
+        showToast(
+
+            "Internet Connected"
+
+        );
+
+    }
+
+);
+
+
+
+window.addEventListener(
+
+    "offline",
+
+    () => {
+
+        showToast(
+
+            "Internet Disconnected"
+
+        );
+
+    }
+
+);
+
+
+
+// ------------------------------------------------------
+// VISIBILITY CHANGE
+// ------------------------------------------------------
+
+document.addEventListener(
+
+    "visibilitychange",
+
+    () => {
+
+        if (
+
+            document.hidden
+
+        ) {
+
+            console.log(
+
+                "Application Hidden"
+
+            );
+
+        }
+
+        else {
+
+            console.log(
+
+                "Application Visible"
+
+            );
+
+        }
+
+    }
+
+);
+
+// ======================================================
+// SECTION 6
+// STORAGE MANAGER
+// ======================================================
+
+
+
+// ------------------------------------------------------
+// SAVE CHAT HISTORY
+// ------------------------------------------------------
+
+function saveChatHistory() {
+
+    if (!FEATURES.autoSaveHistory) {
+
+        return;
 
     }
 
     try {
 
-        const html = marked.parse(markdown);
+        localStorage.setItem(
 
-        return DOMPurify.sanitize(html);
+            STORAGE_KEYS.CHAT_HISTORY,
+
+            JSON.stringify(chat.history)
+
+        );
 
     }
 
@@ -320,7 +1380,1172 @@ function renderMarkdown(markdown = "") {
 
         console.error(
 
-            "Markdown Render Error:",
+            "Unable to save chat history:",
+
+            error
+
+        );
+
+    }
+
+}
+
+
+
+// ------------------------------------------------------
+// RESTORE CHAT HISTORY
+// ------------------------------------------------------
+
+function restoreChatHistory() {
+
+    if (!FEATURES.restoreHistory) {
+
+        return;
+
+    }
+
+    try {
+
+        const saved = localStorage.getItem(
+
+            STORAGE_KEYS.CHAT_HISTORY
+
+        );
+
+        if (!saved) {
+
+            return;
+
+        }
+
+        const history = JSON.parse(saved);
+
+        if (!Array.isArray(history)) {
+
+            return;
+
+        }
+
+        chat.history = history;
+
+        history.forEach(message => {
+
+            if (message.role === "user") {
+
+                addUserMessage(
+
+                    message.content,
+
+                    false
+
+                );
+
+            }
+
+            else if (message.role === "bot") {
+
+                addBotMessage(
+
+                    message.content,
+
+                    false
+
+                );
+
+            }
+
+            else {
+
+                addSystemMessage(
+
+                    message.content,
+
+                    false
+
+                );
+
+            }
+
+        });
+
+        scrollBottomInstant();
+
+    }
+
+    catch (error) {
+
+        console.error(
+
+            "Unable to restore chat history:",
+
+            error
+
+        );
+
+    }
+
+}
+
+
+
+// ------------------------------------------------------
+// ADD MESSAGE TO HISTORY
+// ------------------------------------------------------
+
+function saveMessage(role, content) {
+
+    chat.history.push({
+
+        id: nextMessageId(),
+
+        role,
+
+        content,
+
+        timestamp: Date.now()
+
+    });
+
+    saveChatHistory();
+
+}
+
+
+
+// ------------------------------------------------------
+// CLEAR CHAT HISTORY
+// ------------------------------------------------------
+
+function clearChatHistory() {
+
+    chat.history = [];
+
+    localStorage.removeItem(
+
+        STORAGE_KEYS.CHAT_HISTORY
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// CLEAR CHAT
+// ------------------------------------------------------
+
+function clearChat() {
+
+    if (
+
+        !confirm(
+
+            "Clear the entire conversation?"
+
+        )
+
+    ) {
+
+        return;
+
+    }
+
+    clearChatHistory();
+
+    clearElement("messages");
+
+    showToast("Chat Cleared");
+
+}
+
+
+
+// ------------------------------------------------------
+// EXPORT CHAT
+// ------------------------------------------------------
+
+function exportChat() {
+
+    if (chat.history.length === 0) {
+
+        showToast(
+
+            "No chat to export."
+
+        );
+
+        return;
+
+    }
+
+    const data = {
+
+        app: APP_CONFIG.name,
+
+        version: APP_CONFIG.version,
+
+        exported: new Date().toISOString(),
+
+        session: getSessionId(),
+
+        history: chat.history
+
+    };
+
+    download(
+
+        `RemiPlus-${Date.now()}.json`,
+
+        JSON.stringify(
+
+            data,
+
+            null,
+
+            2
+
+        )
+
+    );
+
+    showToast(
+
+        "Chat Exported"
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// IMPORT CHAT
+// ------------------------------------------------------
+
+function importChat(file) {
+
+    if (!file) {
+
+        return;
+
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = event => {
+
+        try {
+
+            const json = JSON.parse(
+
+                event.target.result
+
+            );
+
+            if (
+
+                !json.history ||
+
+                !Array.isArray(
+
+                    json.history
+
+                )
+
+            ) {
+
+                throw new Error();
+
+            }
+
+            clearElement(
+
+                "messages"
+
+            );
+
+            chat.history = [];
+
+            json.history.forEach(item => {
+
+                if (
+
+                    item.role === "user"
+
+                ) {
+
+                    addUserMessage(
+
+                        item.content,
+
+                        false
+
+                    );
+
+                }
+
+                else if (
+
+                    item.role === "bot"
+
+                ) {
+
+                    addBotMessage(
+
+                        item.content,
+
+                        false
+
+                    );
+
+                }
+
+                else {
+
+                    addSystemMessage(
+
+                        item.content,
+
+                        false
+
+                    );
+
+                }
+
+            });
+
+            chat.history =
+
+                json.history;
+
+            saveChatHistory();
+
+            showToast(
+
+                "Chat Imported"
+
+            );
+
+        }
+
+        catch {
+
+            showToast(
+
+                "Invalid Chat File"
+
+            );
+
+        }
+
+    };
+
+    reader.readAsText(file);
+
+}
+
+
+
+// ------------------------------------------------------
+// DELETE SESSION
+// ------------------------------------------------------
+
+function resetConversation() {
+
+    clearChatHistory();
+
+    resetSession();
+
+    clearElement("messages");
+
+    addBotMessage(
+
+`# 👋 New Conversation
+
+A new conversation has started.
+
+How can I help you today?`
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// GET HISTORY
+// ------------------------------------------------------
+
+function getHistory() {
+
+    return [...chat.history];
+
+}
+
+
+
+// ------------------------------------------------------
+// HISTORY COUNT
+// ------------------------------------------------------
+
+function historyCount() {
+
+    return chat.history.length;
+
+}
+
+
+
+// ------------------------------------------------------
+// LAST MESSAGE
+// ------------------------------------------------------
+
+function lastMessage() {
+
+    if (
+
+        chat.history.length === 0
+
+    ) {
+
+        return null;
+
+    }
+
+    return chat.history[
+
+        chat.history.length - 1
+
+    ];
+
+}
+
+// ======================================================
+// SECTION 7
+// THEME MANAGER
+// ======================================================
+
+
+
+// ------------------------------------------------------
+// INITIALIZE THEME
+// ------------------------------------------------------
+
+function initializeTheme() {
+
+    let savedTheme = localStorage.getItem(
+
+        STORAGE_KEYS.THEME
+
+    );
+
+    if (!savedTheme) {
+
+        savedTheme =
+
+            window.matchMedia(
+
+                "(prefers-color-scheme: dark)"
+
+            ).matches
+
+                ? "dark"
+
+                : "light";
+
+    }
+
+    applyTheme(savedTheme);
+
+}
+
+
+
+// ------------------------------------------------------
+// APPLY THEME
+// ------------------------------------------------------
+
+function applyTheme(theme) {
+
+    state.theme = theme;
+
+    document.body.classList.toggle(
+
+        "dark",
+
+        theme === "dark"
+
+    );
+
+    document.body.classList.toggle(
+
+        "light",
+
+        theme === "light"
+
+    );
+
+    localStorage.setItem(
+
+        STORAGE_KEYS.THEME,
+
+        theme
+
+    );
+
+    updateThemeButton();
+
+}
+
+
+
+// ------------------------------------------------------
+// TOGGLE THEME
+// ------------------------------------------------------
+
+function toggleTheme() {
+
+    if (state.theme === "dark") {
+
+        applyTheme("light");
+
+    }
+
+    else {
+
+        applyTheme("dark");
+
+    }
+
+}
+
+
+
+// ------------------------------------------------------
+// UPDATE THEME BUTTON
+// ------------------------------------------------------
+
+function updateThemeButton() {
+
+    if (!dom.themeToggle) {
+
+        return;
+
+    }
+
+    const icon =
+
+        dom.themeToggle.querySelector("i");
+
+    if (!icon) {
+
+        return;
+
+    }
+
+    if (state.theme === "dark") {
+
+        icon.className =
+
+            "fas fa-sun";
+
+        dom.themeToggle.title =
+
+            "Switch to Light Mode";
+
+    }
+
+    else {
+
+        icon.className =
+
+            "fas fa-moon";
+
+        dom.themeToggle.title =
+
+            "Switch to Dark Mode";
+
+    }
+
+}
+
+
+
+// ------------------------------------------------------
+// GET CURRENT THEME
+// ------------------------------------------------------
+
+function getCurrentTheme() {
+
+    return state.theme;
+
+}
+
+
+
+// ------------------------------------------------------
+// IS DARK MODE
+// ------------------------------------------------------
+
+function isDarkMode() {
+
+    return state.theme === "dark";
+
+}
+
+
+
+// ------------------------------------------------------
+// IS LIGHT MODE
+// ------------------------------------------------------
+
+function isLightMode() {
+
+    return state.theme === "light";
+
+}
+
+
+
+// ------------------------------------------------------
+// SET DARK MODE
+// ------------------------------------------------------
+
+function enableDarkMode() {
+
+    applyTheme("dark");
+
+}
+
+
+
+// ------------------------------------------------------
+// SET LIGHT MODE
+// ------------------------------------------------------
+
+function enableLightMode() {
+
+    applyTheme("light");
+
+}
+
+
+
+// ------------------------------------------------------
+// FOLLOW SYSTEM THEME
+// ------------------------------------------------------
+
+const systemTheme = window.matchMedia(
+
+    "(prefers-color-scheme: dark)"
+
+);
+
+systemTheme.addEventListener(
+
+    "change",
+
+    event => {
+
+        const savedTheme =
+
+            localStorage.getItem(
+
+                STORAGE_KEYS.THEME
+
+            );
+
+        if (savedTheme) {
+
+            return;
+
+        }
+
+        applyTheme(
+
+            event.matches
+
+                ? "dark"
+
+                : "light"
+
+        );
+
+    }
+
+);
+
+
+
+// ------------------------------------------------------
+// REMOVE SAVED THEME
+// ------------------------------------------------------
+
+function resetTheme() {
+
+    localStorage.removeItem(
+
+        STORAGE_KEYS.THEME
+
+    );
+
+    initializeTheme();
+
+}
+
+
+
+// ------------------------------------------------------
+// ANIMATE THEME SWITCH
+// ------------------------------------------------------
+
+function animateThemeTransition() {
+
+    document.body.classList.add(
+
+        "theme-transition"
+
+    );
+
+    setTimeout(() => {
+
+        document.body.classList.remove(
+
+            "theme-transition"
+
+        );
+
+    }, 300);
+
+}
+
+
+
+// ------------------------------------------------------
+// TOGGLE WITH ANIMATION
+// ------------------------------------------------------
+
+function switchTheme() {
+
+    animateThemeTransition();
+
+    toggleTheme();
+
+}
+
+// ======================================================
+// SECTION 8A
+// MESSAGE FACTORY
+// ======================================================
+
+
+
+// ------------------------------------------------------
+// CREATE MESSAGE
+// ------------------------------------------------------
+
+function createMessage(role) {
+
+    const message = document.createElement("div");
+
+    switch (role) {
+
+        case "user":
+
+            message.className = "user-message";
+
+            break;
+
+        case "system":
+
+            message.className = "system-message";
+
+            break;
+
+        default:
+
+            message.className = "bot-message";
+
+    }
+
+    return message;
+
+}
+
+
+
+// ------------------------------------------------------
+// APPEND MESSAGE
+// ------------------------------------------------------
+
+function appendMessage(message) {
+
+    dom.messages.appendChild(message);
+
+    safeScrollBottom();
+
+}
+
+
+
+// ------------------------------------------------------
+// CREATE MARKDOWN BODY
+// ------------------------------------------------------
+
+function createMarkdownBody(markdown) {
+
+    const body = document.createElement("div");
+
+    body.className = "markdown-body";
+
+    if (
+
+        FEATURES.markdown &&
+
+        typeof marked !== "undefined"
+
+    ) {
+
+        body.innerHTML = marked.parse(markdown);
+
+    }
+
+    else {
+
+        body.textContent = markdown;
+
+    }
+
+    return body;
+
+}
+
+
+
+// ------------------------------------------------------
+// CREATE TEXT BODY
+// ------------------------------------------------------
+
+function createTextBody(text) {
+
+    const body = document.createElement("div");
+
+    body.className = "message-body";
+
+    body.textContent = text;
+
+    return body;
+
+}
+
+
+
+// ------------------------------------------------------
+// CREATE TIMESTAMP
+// ------------------------------------------------------
+
+function createTimestamp() {
+
+    const time = document.createElement("span");
+
+    time.className = "message-time";
+
+    time.textContent = currentTime();
+
+    return time;
+
+}
+
+
+
+// ------------------------------------------------------
+// CREATE FOOTER
+// ------------------------------------------------------
+
+function createFooter() {
+
+    const footer = document.createElement("div");
+
+    footer.className = "message-footer";
+
+    return footer;
+
+}
+
+
+
+// ------------------------------------------------------
+// CREATE ACTION BAR
+// ------------------------------------------------------
+
+function createActionBar() {
+
+    const actions = document.createElement("div");
+
+    actions.className = "message-actions";
+
+    return actions;
+
+}
+
+
+
+// ------------------------------------------------------
+// CREATE ICON BUTTON
+// ------------------------------------------------------
+
+function createActionButton(
+
+    icon,
+
+    title,
+
+    callback
+
+) {
+
+    const button = document.createElement("button");
+
+    button.type = "button";
+
+    button.className = "action-btn";
+
+    button.title = title;
+
+    button.innerHTML = `<i class="${icon}"></i>`;
+
+    button.addEventListener(
+
+        "click",
+
+        callback
+
+    );
+
+    return button;
+
+}
+
+
+
+// ------------------------------------------------------
+// BUILD MESSAGE
+// ------------------------------------------------------
+
+function buildMessage(
+
+    role,
+
+    content
+
+) {
+
+    const message = createMessage(role);
+
+    let body;
+
+    if (
+
+        role === "bot" &&
+
+        FEATURES.markdown
+
+    ) {
+
+        body = createMarkdownBody(content);
+
+    }
+
+    else {
+
+        body = createTextBody(content);
+
+    }
+
+    message.appendChild(body);
+
+    appendMessage(message);
+
+    return message;
+
+}
+
+
+
+// ------------------------------------------------------
+// ADD USER MESSAGE
+// ------------------------------------------------------
+
+function addUserMessage(
+
+    text,
+
+    save = true
+
+) {
+
+    buildMessage(
+
+        "user",
+
+        text
+
+    );
+
+    if (save) {
+
+        saveMessage(
+
+            "user",
+
+            text
+
+        );
+
+    }
+
+}
+
+
+
+// ------------------------------------------------------
+// ADD BOT MESSAGE
+// ------------------------------------------------------
+
+function addBotMessage(
+
+    markdown,
+
+    save = true
+
+) {
+
+    const message = buildMessage(
+
+        "bot",
+
+        markdown
+
+    );
+
+    highlightCode(message);
+
+    attachFooter(
+
+        message,
+
+        markdown
+
+    );
+
+    if (save) {
+
+        saveMessage(
+
+            "bot",
+
+            markdown
+
+        );
+
+    }
+
+}
+
+
+
+// ------------------------------------------------------
+// ADD SYSTEM MESSAGE
+// ------------------------------------------------------
+
+function addSystemMessage(
+
+    text,
+
+    save = true
+
+) {
+
+    buildMessage(
+
+        "system",
+
+        text
+
+    );
+
+    if (save) {
+
+        saveMessage(
+
+            "system",
+
+            text
+
+        );
+
+    }
+
+}
+
+// ======================================================
+// SECTION 8B
+// MARKDOWN RENDERER
+// ======================================================
+
+
+
+// ------------------------------------------------------
+// CONFIGURE MARKED
+// ------------------------------------------------------
+
+if (typeof marked !== "undefined") {
+
+    marked.setOptions({
+
+        breaks: true,
+
+        gfm: true,
+
+        headerIds: false,
+
+        mangle: false
+
+    });
+
+}
+
+
+
+// ------------------------------------------------------
+// RENDER MARKDOWN
+// ------------------------------------------------------
+
+function renderMarkdown(markdown) {
+
+    if (!FEATURES.markdown) {
+
+        return escapeHTML(markdown);
+
+    }
+
+    if (typeof marked === "undefined") {
+
+        return escapeHTML(markdown);
+
+    }
+
+    try {
+
+        return marked.parse(markdown);
+
+    }
+
+    catch (error) {
+
+        console.error(
+
+            "Markdown Error:",
 
             error
 
@@ -334,574 +2559,23 @@ function renderMarkdown(markdown = "") {
 
 
 
-// ======================================================
-// CODE HIGHLIGHTER
-// ======================================================
+// ------------------------------------------------------
+// HIGHLIGHT CODE
+// ------------------------------------------------------
 
 function highlightCode(container) {
 
-    if (!FEATURES.syntaxHighlight) {
+    if (
+
+        !FEATURES.syntaxHighlight ||
+
+        typeof hljs === "undefined"
+
+    ) {
 
         return;
 
     }
-
-    if (!container) {
-
-        return;
-
-    }
-
-    const blocks =
-
-        container.querySelectorAll(
-
-            "pre code"
-
-        );
-
-    blocks.forEach(block => {
-
-        try {
-
-            hljs.highlightElement(block);
-
-        }
-
-        catch (error) {
-
-            console.warn(
-
-                "Highlight Error:",
-
-                error
-
-            );
-
-        }
-
-    });
-
-}
-
-
-
-// ======================================================
-// SAFE HTML ESCAPE
-// Used only when Markdown rendering fails.
-// ======================================================
-
-function escapeHTML(text = "") {
-
-    const div =
-
-        document.createElement("div");
-
-    div.textContent = text;
-
-    return div.innerHTML;
-
-}
-
-
-
-// ======================================================
-// REMOVE MARKDOWN FOR TTS / COPY
-// ======================================================
-
-function markdownToPlainText(markdown = "") {
-
-    return markdown
-
-        // Remove fenced code blocks
-        .replace(/```[\s\S]*?```/g, " Code omitted. ")
-
-        // Inline code
-        .replace(/`([^`]+)`/g, "$1")
-
-        // Images
-        .replace(/!\[[^\]]*]\([^)]+\)/g, "")
-
-        // Links
-        .replace(/\[([^\]]+)]\([^)]+\)/g, "$1")
-
-        // Headers
-        .replace(/^#+\s?/gm, "")
-
-        // Blockquotes
-        .replace(/^>\s?/gm, "")
-
-        // Bold / Italic
-        .replace(/[*_~]/g, "")
-
-        // Tables
-        .replace(/\|/g, " ")
-
-        // Horizontal rules
-        .replace(/-{3,}/g, "")
-
-        // Collapse whitespace
-        .replace(/\n+/g, " ")
-
-        .replace(/\s+/g, " ")
-
-        .trim();
-
-}
-
-
-
-// ======================================================
-// MARKDOWN VALIDATOR
-// ======================================================
-
-function isMarkdown(text = "") {
-
-    return /[#>*`\-_\[\]\(\)|]/.test(text);
-
-}
-
-
-
-// ======================================================
-// DEBUG
-// ======================================================
-
-console.log(
-
-    "Markdown Engine Ready."
-
-);
-
-console.log(
-
-    "Syntax Highlight Ready."
-
-);
-
-// ======================================================
-// SECTION 3
-// DOM ELEMENTS & APPLICATION INITIALIZATION
-// ======================================================
-
-// ------------------------------------------------------
-// DOM ELEMENTS
-// ------------------------------------------------------
-
-const elements = {
-
-    messages:
-        document.getElementById("messages"),
-
-    userInput:
-        document.getElementById("userInput"),
-
-    sendButton:
-        document.getElementById("sendButton"),
-
-    clearButton:
-        document.getElementById("clearChat"),
-
-    themeToggle:
-        document.getElementById("themeToggle"),
-
-    micButton:
-        document.getElementById("micButton"),
-
-    voiceStatus:
-        document.getElementById("voiceStatus")
-
-};
-
-
-
-// ------------------------------------------------------
-// VERIFY REQUIRED ELEMENTS
-// ------------------------------------------------------
-
-const REQUIRED_ELEMENTS = [
-
-    "messages",
-
-    "userInput",
-
-    "sendButton",
-
-    "clearButton",
-
-    "themeToggle",
-
-    "micButton",
-
-    "voiceStatus"
-
-];
-
-
-
-function validateDOM() {
-
-    const missing = [];
-
-    REQUIRED_ELEMENTS.forEach(name => {
-
-        if (!elements[name]) {
-
-            missing.push(name);
-
-        }
-
-    });
-
-    if (missing.length > 0) {
-
-        console.error(
-
-            "Missing DOM Elements:",
-
-            missing
-
-        );
-
-        throw new Error(
-
-            "Chat UI could not initialize."
-
-        );
-
-    }
-
-    console.log(
-
-        "DOM Validation Passed."
-
-    );
-
-}
-
-
-
-// ------------------------------------------------------
-// SHORTCUT VARIABLES
-// (Cleaner than writing elements.xxx everywhere)
-// ------------------------------------------------------
-
-const messages =
-    elements.messages;
-
-const userInput =
-    elements.userInput;
-
-const sendButton =
-    elements.sendButton;
-
-const clearButton =
-    elements.clearButton;
-
-const themeToggle =
-    elements.themeToggle;
-
-const micButton =
-    elements.micButton;
-
-const voiceStatus =
-    elements.voiceStatus;
-
-
-
-// ------------------------------------------------------
-// INITIAL UI STATE
-// ------------------------------------------------------
-
-function initializeUI() {
-
-    userInput.disabled = false;
-
-    sendButton.disabled = false;
-
-    micButton.disabled = false;
-
-    userInput.placeholder =
-        "Message Remi+...";
-
-    voiceStatus.textContent =
-        "✅ Ready";
-
-}
-
-
-
-// ------------------------------------------------------
-// ENABLE / DISABLE INPUT
-// ------------------------------------------------------
-
-function lockInput() {
-
-    userInput.disabled = true;
-
-    sendButton.disabled = true;
-
-    micButton.disabled = true;
-
-    userInput.placeholder =
-        "Remi+ is generating a response...";
-
-}
-
-
-
-function unlockInput() {
-
-    userInput.disabled = false;
-
-    sendButton.disabled = false;
-
-    micButton.disabled = false;
-
-    userInput.placeholder =
-        "Message Remi+...";
-
-    if (CHAT.autoFocus) {
-
-        userInput.focus();
-
-    }
-
-}
-
-
-
-// ------------------------------------------------------
-// STATUS BAR
-// ------------------------------------------------------
-
-function setStatus(text) {
-
-    voiceStatus.textContent = text;
-
-}
-
-
-
-// ------------------------------------------------------
-// READY STATUS
-// ------------------------------------------------------
-
-function aiReady() {
-
-    setStatus("✅ Ready");
-
-}
-
-
-
-function aiThinking() {
-
-    setStatus("🧠 Thinking...");
-
-}
-
-
-
-function aiTyping() {
-
-    setStatus("⌨️ Typing...");
-
-}
-
-
-
-function aiListening() {
-
-    setStatus("🎤 Listening...");
-
-}
-
-
-
-function aiSpeaking() {
-
-    setStatus("🔊 Reading response...");
-
-}
-
-
-
-function aiOffline() {
-
-    setStatus("🔴 Offline");
-
-}
-
-
-
-function aiError() {
-
-    setStatus("❌ Error");
-
-}
-
-
-
-// ------------------------------------------------------
-// INITIALIZATION
-// ------------------------------------------------------
-
-validateDOM();
-
-initializeUI();
-
-console.log(
-
-    "UI Initialization Complete."
-
-);
-
-// ======================================================
-// SECTION 4
-// SESSION MANAGEMENT
-// ======================================================
-
-const SESSION_KEY = "remiplus-session-id";
-
-let sessionId = localStorage.getItem(SESSION_KEY);
-
-// Create a brand-new session if one doesn't exist
-if (!sessionId) {
-
-    sessionId = crypto.randomUUID();
-
-    localStorage.setItem(
-        SESSION_KEY,
-        sessionId
-    );
-
-}
-
-// ------------------------------------------------------
-// Create New Session
-// ------------------------------------------------------
-
-function createNewSession() {
-
-    sessionId = crypto.randomUUID();
-
-    localStorage.setItem(
-        SESSION_KEY,
-        sessionId
-    );
-
-    console.log("New Session:", sessionId);
-
-}
-
-// ------------------------------------------------------
-// Get Current Session
-// ------------------------------------------------------
-
-function getSessionId() {
-
-    return sessionId;
-
-}
-
-// ======================================================
-// SECTION 5
-// UTILITIES
-// ======================================================
-
-// ------------------------------------------------------
-// Sleep
-// Used for typing animation & delays
-// ------------------------------------------------------
-
-function sleep(ms) {
-
-    return new Promise(resolve => {
-
-        setTimeout(resolve, ms);
-
-    });
-
-}
-
-// ------------------------------------------------------
-// Random Typing Delay
-// Creates natural typing speed
-// ------------------------------------------------------
-
-function randomDelay(min = WORD_DELAY_MIN, max = WORD_DELAY_MAX) {
-
-    return Math.floor(
-
-        Math.random() * (max - min + 1)
-
-    ) + min;
-
-}
-
-// ------------------------------------------------------
-// Scroll Chat To Bottom
-// ------------------------------------------------------
-
-function scrollBottom() {
-
-    messages.scrollTop = messages.scrollHeight;
-
-}
-
-// ------------------------------------------------------
-// Smooth Scroll
-// Used after messages are added
-// ------------------------------------------------------
-
-function smoothScrollBottom() {
-
-    messages.scrollTo({
-
-        top: messages.scrollHeight,
-
-        behavior: "smooth"
-
-    });
-
-}
-
-// ------------------------------------------------------
-// Escape HTML
-// Prevent HTML injection in user messages
-// ------------------------------------------------------
-
-function escapeHTML(text) {
-
-    const div = document.createElement("div");
-
-    div.textContent = text;
-
-    return div.innerHTML;
-
-}
-
-// ------------------------------------------------------
-// Render Markdown
-// Converts Markdown -> Safe HTML
-// ------------------------------------------------------
-
-function renderMarkdown(markdown) {
-
-    return DOMPurify.sanitize(
-
-        marked.parse(markdown)
-
-    );
-
-}
-
-// ------------------------------------------------------
-// Highlight Code Blocks
-// ------------------------------------------------------
-
-function highlightCode(container) {
 
     container
 
@@ -913,268 +2587,466 @@ function highlightCode(container) {
 
         });
 
-}
-
-// ------------------------------------------------------
-// Current Time
-// Used for message timestamps
-// ------------------------------------------------------
-
-function getCurrentTime() {
-
-    return new Date().toLocaleTimeString(
-
-        [],
-
-        {
-
-            hour: "2-digit",
-
-            minute: "2-digit"
-
-        }
-
-    );
+    addCopyButtons(container);
 
 }
 
+
+
 // ------------------------------------------------------
-// Append Timestamp
+// COPY BUTTONS
 // ------------------------------------------------------
 
-function appendTimestamp(messageElement) {
+function addCopyButtons(container) {
 
-    const time = document.createElement("div");
+    container
 
-    time.className = "message-time";
+        .querySelectorAll("pre")
 
-    time.textContent = getCurrentTime();
+        .forEach(pre => {
 
-    messageElement.appendChild(time);
+            if (
+
+                pre.querySelector(
+
+                    ".copy-code"
+
+                )
+
+            ) {
+
+                return;
+
+            }
+
+            const button =
+
+                document.createElement(
+
+                    "button"
+
+                );
+
+            button.className =
+
+                "copy-code";
+
+            button.textContent =
+
+                "Copy";
+
+            button.onclick = () => {
+
+                copyCode(pre);
+
+            };
+
+            pre.prepend(button);
+
+        });
 
 }
 
-// ------------------------------------------------------
-// Auto Grow Textarea
-// ------------------------------------------------------
 
-function autoGrowTextarea() {
-
-    userInput.style.height = "56px";
-
-    userInput.style.height =
-
-        userInput.scrollHeight + "px";
-
-}
 
 // ------------------------------------------------------
-// Lock Input
-// Prevent sending multiple requests
+// COPY CODE
 // ------------------------------------------------------
 
-function lockInput() {
+async function copyCode(pre) {
 
-    userInput.disabled = true;
+    try {
 
-    sendButton.disabled = true;
+        const code =
 
-    micButton.disabled = true;
+            pre.querySelector("code")
 
-    userInput.placeholder =
+                .innerText;
 
-        "Remi+ is generating a response...";
+        await navigator.clipboard.writeText(
 
-}
+            code
 
-// ------------------------------------------------------
-// Unlock Input
-// ------------------------------------------------------
+        );
 
-function unlockInput() {
+        const button =
 
-    userInput.disabled = false;
+            pre.querySelector(
 
-    sendButton.disabled = false;
+                ".copy-code"
 
-    micButton.disabled = false;
+            );
 
-    userInput.placeholder =
+        button.textContent =
 
-        "Message Remi+...";
+            "Copied!";
 
-    userInput.focus();
+        setTimeout(() => {
 
-}
+            button.textContent =
 
-// ------------------------------------------------------
-// Update Status
-// ------------------------------------------------------
+                "Copy";
 
-function setStatus(text) {
+        }, 1500);
 
-    voiceStatus.textContent = text;
+    }
 
-}
+    catch {
 
-// ------------------------------------------------------
-// Convenience Helpers
-// ------------------------------------------------------
+        showToast(
 
-function aiReady() {
+            "Unable to copy."
 
-    setStatus("✅ Ready");
-
-}
-
-function aiThinking() {
-
-    setStatus("🧠 Remi+ is thinking...");
-
-}
-
-function aiTyping() {
-
-    setStatus("⌨️ Remi+ is typing...");
-
-}
-
-function aiError() {
-
-    setStatus("❌ Error");
-
-}
-
-// ------------------------------------------------------
-// Fade-in Animation
-// ------------------------------------------------------
-
-function animateMessage(element) {
-
-    element.classList.add("message-enter");
-
-    requestAnimationFrame(() => {
-
-        element.classList.add("message-enter-active");
-
-    });
-
-}
-
-// ------------------------------------------------------
-// Typing Cursor
-// ------------------------------------------------------
-
-function addTypingCursor(container) {
-
-    const cursor = document.createElement("span");
-
-    cursor.className = "typing-cursor";
-
-    cursor.textContent = "▋";
-
-    container.appendChild(cursor);
-
-    return cursor;
-
-}
-
-function removeTypingCursor(cursor) {
-
-    if (cursor) {
-
-        cursor.remove();
+        );
 
     }
 
 }
 
+
+
 // ------------------------------------------------------
-// Toast Notification
+// ESCAPE HTML
 // ------------------------------------------------------
 
-function showToast(text = "Copied!") {
+function escapeHTML(text) {
 
-    const toast = document.createElement("div");
+    const div =
 
-    toast.className = "toast";
+        document.createElement(
 
-    toast.textContent = text;
+            "div"
 
-    document.body.appendChild(toast);
+        );
 
-    requestAnimationFrame(() => {
+    div.textContent = text;
 
-        toast.classList.add("show");
+    return div.innerHTML;
 
-    });
+}
 
-    setTimeout(() => {
 
-        toast.classList.remove("show");
 
-    }, 1800);
+// ------------------------------------------------------
+// AUTO LINKS
+// ------------------------------------------------------
 
-    setTimeout(() => {
+function linkify(container) {
 
-        toast.remove();
+    container
 
-    }, 2200);
+        .querySelectorAll("a")
+
+        .forEach(link => {
+
+            link.target = "_blank";
+
+            link.rel =
+
+                "noopener noreferrer";
+
+        });
+
+}
+
+
+
+// ------------------------------------------------------
+// RESPONSIVE TABLES
+// ------------------------------------------------------
+
+function wrapTables(container) {
+
+    container
+
+        .querySelectorAll("table")
+
+        .forEach(table => {
+
+            if (
+
+                table.parentElement
+
+                    .classList.contains(
+
+                        "table-wrapper"
+
+                    )
+
+            ) {
+
+                return;
+
+            }
+
+            const wrapper =
+
+                document.createElement(
+
+                    "div"
+
+                );
+
+            wrapper.className =
+
+                "table-wrapper";
+
+            table.parentNode.insertBefore(
+
+                wrapper,
+
+                table
+
+            );
+
+            wrapper.appendChild(table);
+
+        });
+
+}
+
+
+
+// ------------------------------------------------------
+// RESPONSIVE IMAGES
+// ------------------------------------------------------
+
+function prepareImages(container) {
+
+    container
+
+        .querySelectorAll("img")
+
+        .forEach(img => {
+
+            img.loading = "lazy";
+
+            img.decoding = "async";
+
+            img.referrerPolicy =
+
+                "no-referrer";
+
+        });
+
+}
+
+
+
+// ------------------------------------------------------
+// POST PROCESS MARKDOWN
+// ------------------------------------------------------
+
+function postProcessMarkdown(
+
+    container
+
+) {
+
+    linkify(container);
+
+    wrapTables(container);
+
+    prepareImages(container);
+
+    highlightCode(container);
 
 }
 
 // ======================================================
-// SECTION 6
-// SPEECH RECOGNITION
+// SECTION 8C
+// MESSAGE FOOTER & ACTIONS
 // ======================================================
 
-// ------------------------------------------------------
-// Browser Support
-// ------------------------------------------------------
 
-const SpeechRecognition =
-
-    window.SpeechRecognition ||
-
-    window.webkitSpeechRecognition;
 
 // ------------------------------------------------------
-// Variables
+// ATTACH FOOTER
 // ------------------------------------------------------
 
-let recognition = null;
+function attachFooter(message, markdown = "") {
 
-let isListening = false;
+    const footer = document.createElement("div");
 
-// ------------------------------------------------------
-// Initialize Speech Recognition
-// ------------------------------------------------------
+    footer.className = "message-footer";
 
-if (SpeechRecognition) {
+    const time = document.createElement("span");
 
-    recognition = new SpeechRecognition();
+    time.className = "message-time";
 
-    recognition.lang = "en-US";
+    time.textContent = currentTime();
 
-    recognition.continuous = false;
+    footer.appendChild(time);
 
-    recognition.interimResults = true;
+    const actions = createActionButtons(
 
-    recognition.maxAlternatives = 1;
+        markdown,
+
+        message
+
+    );
+
+    footer.appendChild(actions);
+
+    message.appendChild(footer);
 
 }
 
+
+
 // ------------------------------------------------------
-// Start Listening
+// CREATE ACTION BUTTONS
 // ------------------------------------------------------
 
-function startListening() {
+function createActionButtons(
 
-    if (!recognition) {
+    markdown,
+
+    message
+
+) {
+
+    const container = document.createElement("div");
+
+    container.className = "message-actions";
+
+
+
+    container.appendChild(
+
+        createActionButton(
+
+            "fa-regular fa-copy",
+
+            "Copy",
+
+            () => copyMessage(markdown)
+
+        )
+
+    );
+
+
+
+    if (FEATURES.textToSpeech) {
+
+        container.appendChild(
+
+            createActionButton(
+
+                "fa-solid fa-volume-high",
+
+                "Read Aloud",
+
+                () => speakText(markdown)
+
+            )
+
+        );
+
+    }
+
+
+
+    container.appendChild(
+
+        createActionButton(
+
+            "fa-solid fa-rotate-right",
+
+            "Regenerate",
+
+            regenerateLastReply
+
+        )
+
+    );
+
+
+
+    container.appendChild(
+
+        createActionButton(
+
+            "fa-regular fa-thumbs-up",
+
+            "Helpful",
+
+            event =>
+
+                rateMessage(
+
+                    event.currentTarget,
+
+                    true
+
+                )
+
+        )
+
+    );
+
+
+
+    container.appendChild(
+
+        createActionButton(
+
+            "fa-regular fa-thumbs-down",
+
+            "Not Helpful",
+
+            event =>
+
+                rateMessage(
+
+                    event.currentTarget,
+
+                    false
+
+                )
+
+        )
+
+    );
+
+
+
+    return container;
+
+}
+
+
+
+// ------------------------------------------------------
+// COPY MESSAGE
+// ------------------------------------------------------
+
+async function copyMessage(text) {
+
+    await copyText(text);
+
+}
+
+
+
+// ------------------------------------------------------
+// SPEAK MESSAGE
+// ------------------------------------------------------
+
+function speakText(text) {
+
+    if (
+
+        !FEATURES.textToSpeech ||
+
+        !("speechSynthesis" in window)
+
+    ) {
 
         showToast(
 
-            "Speech Recognition is not supported."
+            "Speech unavailable."
 
         );
 
@@ -1182,73 +3054,1398 @@ function startListening() {
 
     }
 
-    if (isListening) {
+
+
+    speechSynthesis.cancel();
+
+
+
+    const utterance =
+
+        new SpeechSynthesisUtterance(
+
+            text.replace(/[#>*`]/g, "")
+
+        );
+
+
+
+    utterance.lang = SPEECH.language;
+
+    utterance.rate = SPEECH.rate;
+
+    utterance.pitch = SPEECH.pitch;
+
+    utterance.volume = SPEECH.volume;
+
+
+
+    state.currentSpeech = utterance;
+
+
+
+    speechSynthesis.speak(
+
+        utterance
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// STOP SPEAKING
+// ------------------------------------------------------
+
+function stopSpeaking() {
+
+    speechSynthesis.cancel();
+
+}
+
+
+
+// ------------------------------------------------------
+// REGENERATE
+// ------------------------------------------------------
+
+async function regenerateLastReply() {
+
+    if (
+
+        state.isGenerating ||
+
+        chat.history.length === 0
+
+    ) {
 
         return;
 
     }
 
-    recognition.start();
 
-}
 
-// ------------------------------------------------------
-// Stop Listening
-// ------------------------------------------------------
+    const lastUser =
 
-function stopListening() {
+        [...chat.history]
 
-    if (!recognition) {
+        .reverse()
+
+        .find(
+
+            message =>
+
+                message.role === "user"
+
+        );
+
+
+
+    if (!lastUser) {
 
         return;
 
     }
 
-    recognition.stop();
+
+
+    await askAI(
+
+        lastUser.content
+
+    );
 
 }
 
+
+
 // ------------------------------------------------------
-// Toggle Listening
+// RATE MESSAGE
 // ------------------------------------------------------
 
-function toggleListening() {
+function rateMessage(
 
-    if (isListening) {
+    button,
 
-        stopListening();
+    liked
 
-    }
+) {
 
-    else {
+    const actions =
 
-        startListening();
+        button.parentElement;
+
+
+
+    actions
+
+        .querySelectorAll(
+
+            ".action-btn"
+
+        )
+
+        .forEach(btn => {
+
+            btn.classList.remove(
+
+                "active"
+
+            );
+
+        });
+
+
+
+    button.classList.add(
+
+        "active"
+
+    );
+
+
+
+    showToast(
+
+        liked
+
+            ? "Thanks for your feedback!"
+
+            : "Feedback received."
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// ADD TYPING CURSOR
+// ------------------------------------------------------
+
+function addTypingCursor(message) {
+
+    const cursor =
+
+        document.createElement(
+
+            "span"
+
+        );
+
+
+
+    cursor.className =
+
+        "typing-cursor";
+
+
+
+    cursor.textContent = "▋";
+
+
+
+    message.appendChild(cursor);
+
+
+
+    return cursor;
+
+}
+
+
+
+// ------------------------------------------------------
+// REMOVE TYPING CURSOR
+// ------------------------------------------------------
+
+function removeTypingCursor(cursor) {
+
+    if (
+
+        cursor &&
+
+        cursor.parentNode
+
+    ) {
+
+        cursor.remove();
 
     }
 
 }
 
+
+
 // ------------------------------------------------------
-// Recognition Started
+// AI THINKING
 // ------------------------------------------------------
 
-if (recognition) {
+function showThinking() {
 
-    recognition.onstart = () => {
+    removeThinking();
 
-        isListening = true;
 
-        micButton.classList.add("listening");
 
-        setStatus("🎤 Listening...");
+    const thinking =
+
+        document.createElement("div");
+
+
+
+    thinking.className =
+
+        "thinking";
+
+
+
+    thinking.id =
+
+        "thinkingMessage";
+
+
+
+    thinking.innerHTML =
+
+        `
+
+<div class="dot"></div>
+
+<div class="dot"></div>
+
+<div class="dot"></div>
+
+<span>Remi+ is thinking...</span>
+
+`;
+
+
+
+    dom.messages.appendChild(
+
+        thinking
+
+    );
+
+
+
+    safeScrollBottom();
+
+}
+
+
+
+// ------------------------------------------------------
+// REMOVE THINKING
+// ------------------------------------------------------
+
+function removeThinking() {
+
+    document
+
+        .getElementById(
+
+            "thinkingMessage"
+
+        )
+
+        ?.remove();
+
+}
+
+// ======================================================
+// SECTION 9
+// AI COMMUNICATION ENGINE
+// ======================================================
+
+
+
+// ------------------------------------------------------
+// SEND MESSAGE TO AI
+// ------------------------------------------------------
+
+async function askAI(prompt) {
+
+    if (state.isGenerating) {
+
+        return;
+
+    }
+
+    state.isGenerating = true;
+
+    lockInput();
+
+    aiThinking();
+
+    showThinking();
+
+    try {
+
+        const response = await fetch(
+
+            WEBHOOK_URL,
+
+            {
+
+                method: "POST",
+
+                headers: {
+
+                    "Content-Type": "application/json"
+
+                },
+
+                body: JSON.stringify({
+
+                    message: prompt,
+
+                    sessionId: getSessionId()
+
+                })
+
+            }
+
+        );
+
+        if (!response.ok) {
+
+            throw new Error(
+
+                `HTTP ${response.status}`
+
+            );
+
+        }
+
+        const data = await response.json();
+
+        removeThinking();
+
+
+
+        if (
+
+            THINKING.enabled
+
+        ) {
+
+            await sleep(
+
+                THINKING.delay
+
+            );
+
+        }
+
+
+
+        const reply = extractReply(data);
+
+
+
+        if (
+
+            TYPING.enabled
+
+        ) {
+
+            await typeBotMessage(
+
+                reply
+
+            );
+
+        }
+
+        else {
+
+            addBotMessage(
+
+                reply
+
+            );
+
+        }
+
+
+
+        aiReady();
+
+    }
+
+    catch (error) {
+
+        console.error(
+
+            error
+
+        );
+
+
+
+        removeThinking();
+
+
+
+        addSystemMessage(
+
+            "❌ Unable to connect to Remi+. Please try again."
+
+        );
+
+
+
+        aiError();
+
+    }
+
+    finally {
+
+        unlockInput();
+
+        state.isGenerating = false;
+
+    }
+
+}
+
+
+
+// ------------------------------------------------------
+// TYPE BOT MESSAGE
+// ------------------------------------------------------
+
+async function typeBotMessage(markdown) {
+
+    aiTyping();
+
+
+
+    const message = createMessage("bot");
+
+
+
+    const body = document.createElement("div");
+
+    body.className = "markdown-body";
+
+
+
+    message.appendChild(body);
+
+    appendMessage(message);
+
+
+
+    const cursor = addTypingCursor(body);
+
+
+
+    const words = markdown.split(/\s+/);
+
+
+
+    let current = "";
+
+
+
+    for (const word of words) {
+
+        current += word + " ";
+
+
+
+        body.innerHTML =
+
+            renderMarkdown(current);
+
+
+
+        body.appendChild(cursor);
+
+
+
+        postProcessMarkdown(body);
+
+
+
+        safeScrollBottom();
+
+
+
+        if (
+
+            document.hidden
+
+        ) {
+
+            continue;
+
+        }
+
+
+
+        let delay = randomNumber(
+
+            TYPING.minDelay,
+
+            TYPING.maxDelay
+
+        );
+
+
+
+        if (
+
+            /[.,!?;:]$/.test(word)
+
+        ) {
+
+            delay +=
+
+                TYPING.punctuationDelay;
+
+        }
+
+
+
+        await sleep(delay);
+
+    }
+
+
+
+    removeTypingCursor(cursor);
+
+
+
+    body.innerHTML =
+
+        renderMarkdown(markdown);
+
+
+
+    postProcessMarkdown(body);
+
+
+
+    attachFooter(
+
+        message,
+
+        markdown
+
+    );
+
+
+
+    if (
+
+        FEATURES.autoSaveHistory
+
+    ) {
+
+        saveMessage(
+
+            "bot",
+
+            markdown
+
+        );
+
+    }
+
+
+
+    safeScrollBottom();
+
+
+
+    aiReady();
+
+}
+
+
+
+// ------------------------------------------------------
+// EXTRACT AI RESPONSE
+// ------------------------------------------------------
+
+function extractReply(data) {
+
+    if (
+
+        Array.isArray(data)
+
+    ) {
+
+        data = data[0];
+
+    }
+
+
+
+    if (!data) {
+
+        return "⚠️ Empty response received.";
+
+    }
+
+
+
+    if (
+
+        typeof data === "string"
+
+    ) {
+
+        return data;
+
+    }
+
+
+
+    const keys = [
+
+        "reply",
+
+        "response",
+
+        "output",
+
+        "message",
+
+        "text",
+
+        "content",
+
+        "answer"
+
+    ];
+
+
+
+    for (const key of keys) {
+
+        if (
+
+            data[key]
+
+        ) {
+
+            return data[key];
+
+        }
+
+    }
+
+
+
+    return JSON.stringify(
+
+        data,
+
+        null,
+
+        2
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// RETRY LAST PROMPT
+// ------------------------------------------------------
+
+async function retryLastPrompt() {
+
+    const last =
+
+        [...chat.history]
+
+        .reverse()
+
+        .find(
+
+            item =>
+
+                item.role === "user"
+
+        );
+
+
+
+    if (!last) {
+
+        return;
+
+    }
+
+
+
+    await askAI(
+
+        last.content
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// CANCEL REQUEST
+// ------------------------------------------------------
+
+function cancelGeneration() {
+
+    state.isGenerating = false;
+
+    unlockInput();
+
+    removeThinking();
+
+    aiReady();
+
+}
+
+
+
+// ------------------------------------------------------
+// CONNECTION TEST
+// ------------------------------------------------------
+
+async function testConnection() {
+
+    try {
+
+        const response = await fetch(
+
+            WEBHOOK_URL,
+
+            {
+
+                method: "HEAD"
+
+            }
+
+        );
+
+
+
+        return response.ok;
+
+    }
+
+    catch {
+
+        return false;
+
+    }
+
+}
+
+
+
+// ------------------------------------------------------
+// SEND USER PROMPT
+// ------------------------------------------------------
+
+async function sendPrompt() {
+
+    const text =
+
+        dom.userInput.value.trim();
+
+
+
+    if (
+
+        !text ||
+
+        state.isGenerating
+
+    ) {
+
+        return;
+
+    }
+
+
+
+    addUserMessage(text);
+
+
+
+    dom.userInput.value = "";
+
+
+
+    resetTextarea();
+
+
+
+    await askAI(text);
+
+}
+
+
+
+// ------------------------------------------------------
+// QUICK PROMPT
+// ------------------------------------------------------
+
+async function ask(question) {
+
+    addUserMessage(question);
+
+    await askAI(question);
+
+}
+
+// ======================================================
+// SECTION 10
+// EVENT MANAGER
+// ======================================================
+
+
+
+// ------------------------------------------------------
+// REGISTER ALL EVENTS
+// ------------------------------------------------------
+
+function registerEventListeners() {
+
+    registerInputEvents();
+
+    registerButtonEvents();
+
+    registerKeyboardEvents();
+
+    registerWindowEvents();
+
+}
+
+
+
+// ------------------------------------------------------
+// INPUT EVENTS
+// ------------------------------------------------------
+
+function registerInputEvents() {
+
+    if (!dom.userInput) return;
+
+
+
+    dom.userInput.addEventListener(
+
+        "input",
+
+        autoResizeTextarea
+
+    );
+
+
+
+    dom.userInput.addEventListener(
+
+        "paste",
+
+        () => {
+
+            requestAnimationFrame(
+
+                autoResizeTextarea
+
+            );
+
+        }
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// BUTTON EVENTS
+// ------------------------------------------------------
+
+function registerButtonEvents() {
+
+    if (dom.sendButton) {
+
+        dom.sendButton.addEventListener(
+
+            "click",
+
+            sendPrompt
+
+        );
+
+    }
+
+
+
+    if (dom.clearChat) {
+
+        dom.clearChat.addEventListener(
+
+            "click",
+
+            clearChat
+
+        );
+
+    }
+
+
+
+    if (dom.themeToggle) {
+
+        dom.themeToggle.addEventListener(
+
+            "click",
+
+            switchTheme
+
+        );
+
+    }
+
+
+
+    if (dom.micButton) {
+
+        dom.micButton.addEventListener(
+
+            "click",
+
+            toggleSpeechRecognition
+
+        );
+
+    }
+
+}
+
+
+
+// ------------------------------------------------------
+// KEYBOARD EVENTS
+// ------------------------------------------------------
+
+function registerKeyboardEvents() {
+
+    if (!dom.userInput) return;
+
+
+
+    dom.userInput.addEventListener(
+
+        "keydown",
+
+        async event => {
+
+            if (
+
+                event.key === "Enter" &&
+
+                !event.shiftKey
+
+            ) {
+
+                event.preventDefault();
+
+                await sendPrompt();
+
+            }
+
+        }
+
+    );
+
+
+
+    document.addEventListener(
+
+        "keydown",
+
+        event => {
+
+            // ESC cancels AI generation
+
+            if (
+
+                event.key === "Escape"
+
+            ) {
+
+                cancelGeneration();
+
+            }
+
+
+
+            // Ctrl + L
+
+            if (
+
+                event.ctrlKey &&
+
+                event.key.toLowerCase() === "l"
+
+            ) {
+
+                event.preventDefault();
+
+                clearChat();
+
+            }
+
+
+
+            // Ctrl + /
+
+            if (
+
+                event.ctrlKey &&
+
+                event.key === "/"
+
+            ) {
+
+                event.preventDefault();
+
+                dom.userInput.focus();
+
+            }
+
+        }
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// WINDOW EVENTS
+// ------------------------------------------------------
+
+function registerWindowEvents() {
+
+    window.addEventListener(
+
+        "resize",
+
+        debounce(
+
+            safeScrollBottom,
+
+            200
+
+        )
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// ENABLE SEND BUTTON
+// ------------------------------------------------------
+
+function updateSendButton() {
+
+    if (!dom.sendButton) return;
+
+
+
+    dom.sendButton.disabled =
+
+        isEmpty(
+
+            dom.userInput.value
+
+        ) ||
+
+        state.isGenerating;
+
+}
+
+
+
+// ------------------------------------------------------
+// ENABLE INPUT EVENTS
+// ------------------------------------------------------
+
+if (dom.userInput) {
+
+    dom.userInput.addEventListener(
+
+        "input",
+
+        updateSendButton
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// GLOBAL SHORTCUTS
+// ------------------------------------------------------
+
+document.addEventListener(
+
+    "visibilitychange",
+
+    () => {
+
+        if (
+
+            !document.hidden
+
+        ) {
+
+            updateSendButton();
+
+        }
+
+    }
+
+);
+
+
+
+// ------------------------------------------------------
+// CLICK OUTSIDE
+// ------------------------------------------------------
+
+document.addEventListener(
+
+    "click",
+
+    event => {
+
+        if (
+
+            event.target.matches(
+
+                ".toast"
+
+            )
+
+        ) {
+
+            event.target.classList.remove(
+
+                "show"
+
+            );
+
+        }
+
+    }
+
+);
+
+
+
+// ------------------------------------------------------
+// DRAG & DROP IMPORT
+// ------------------------------------------------------
+
+document.addEventListener(
+
+    "dragover",
+
+    event => {
+
+        event.preventDefault();
+
+    }
+
+);
+
+
+
+document.addEventListener(
+
+    "drop",
+
+    event => {
+
+        event.preventDefault();
+
+
+
+        const file =
+
+            event.dataTransfer.files[0];
+
+
+
+        if (
+
+            file &&
+
+            file.name.endsWith(
+
+                ".json"
+
+            )
+
+        ) {
+
+            importChat(file);
+
+        }
+
+    }
+
+);
+
+
+
+// ------------------------------------------------------
+// AUTO FOCUS
+// ------------------------------------------------------
+
+window.addEventListener(
+
+    "focus",
+
+    () => {
+
+        if (
+
+            !state.isGenerating &&
+
+            dom.userInput
+
+        ) {
+
+            dom.userInput.focus();
+
+        }
+
+    }
+
+);
+
+
+
+// ------------------------------------------------------
+// INITIAL BUTTON STATE
+// ------------------------------------------------------
+
+updateSendButton();
+
+// ======================================================
+// SECTION 11
+// VOICE RECOGNITION & TEXT TO SPEECH
+// ======================================================
+
+
+
+// ------------------------------------------------------
+// INITIALIZE SPEECH
+// ------------------------------------------------------
+
+function initializeSpeech() {
+
+    if (!FEATURES.speechRecognition) {
+
+        return;
+
+    }
+
+    const SpeechRecognition =
+
+        window.SpeechRecognition ||
+
+        window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+
+        console.warn(
+
+            "Speech Recognition is not supported."
+
+        );
+
+        if (dom.micButton) {
+
+            dom.micButton.style.display = "none";
+
+        }
+
+        return;
+
+    }
+
+    state.recognition =
+
+        new SpeechRecognition();
+
+    state.recognition.lang =
+
+        SPEECH.language;
+
+    state.recognition.continuous =
+
+        SPEECH.continuous;
+
+    state.recognition.interimResults =
+
+        SPEECH.interimResults;
+
+    state.recognition.maxAlternatives = 1;
+
+    registerSpeechEvents();
+
+}
+
+
+
+// ------------------------------------------------------
+// REGISTER SPEECH EVENTS
+// ------------------------------------------------------
+
+function registerSpeechEvents() {
+
+    if (!state.recognition) {
+
+        return;
+
+    }
+
+    state.recognition.onstart = () => {
+
+        state.isListening = true;
+
+        updateMicButton();
+
+        updateVoiceStatus(
+
+            "🎤 Listening..."
+
+        );
 
     };
 
-    // --------------------------------------------------
-    // Live Speech
-    // --------------------------------------------------
 
-    recognition.onresult = (event) => {
+
+    state.recognition.onresult = event => {
 
         let transcript = "";
 
@@ -1268,1114 +4465,814 @@ if (recognition) {
 
         }
 
-        userInput.value = transcript;
+        dom.userInput.value = transcript;
 
-        autoGrowTextarea();
+        autoResizeTextarea();
 
-    };
-
-    // --------------------------------------------------
-    // Finished Listening
-    // --------------------------------------------------
-
-    recognition.onend = () => {
-
-        isListening = false;
-
-        micButton.classList.remove("listening");
-
-        if (
-
-            userInput.value.trim() !== ""
-
-        ) {
-
-            sendMessage();
-
-        }
-
-        else {
-
-            aiReady();
-
-        }
+        updateSendButton();
 
     };
 
-    // --------------------------------------------------
-    // Errors
-    // --------------------------------------------------
 
-    recognition.onerror = (event) => {
 
-        isListening = false;
+    state.recognition.onerror = event => {
 
-        micButton.classList.remove("listening");
+        console.error(
 
-        switch (event.error) {
+            "Speech Error:",
 
-            case "no-speech":
-
-                showToast(
-
-                    "No speech detected."
-
-                );
-
-                break;
-
-            case "audio-capture":
-
-                showToast(
-
-                    "No microphone detected."
-
-                );
-
-                break;
-
-            case "not-allowed":
-
-                showToast(
-
-                    "Microphone permission denied."
-
-                );
-
-                break;
-
-            case "network":
-
-                showToast(
-
-                    "Speech recognition network error."
-
-                );
-
-                break;
-
-            default:
-
-                showToast(
-
-                    "Speech recognition failed."
-
-                );
-
-        }
-
-        aiError();
-
-    };
-
-}
-
-// ------------------------------------------------------
-// Microphone Button
-// ------------------------------------------------------
-
-if (micButton) {
-
-    micButton.addEventListener(
-
-        "click",
-
-        toggleListening
-
-    );
-
-}
-
-// ======================================================
-// SECTION 7
-// THEME MANAGER
-// ======================================================
-
-// ------------------------------------------------------
-// Constants
-// ------------------------------------------------------
-
-const THEME_KEY = "remiplus-theme";
-
-// ------------------------------------------------------
-// Apply Theme
-// ------------------------------------------------------
-
-function applyTheme(theme) {
-
-    if (theme === "dark") {
-
-        document.body.classList.add("dark");
-
-    }
-
-    else {
-
-        document.body.classList.remove("dark");
-
-    }
-
-    updateThemeIcon();
-
-}
-
-// ------------------------------------------------------
-// Get Saved Theme
-// ------------------------------------------------------
-
-function getSavedTheme() {
-
-    return localStorage.getItem(THEME_KEY);
-
-}
-
-// ------------------------------------------------------
-// Save Theme
-// ------------------------------------------------------
-
-function saveTheme(theme) {
-
-    localStorage.setItem(
-
-        THEME_KEY,
-
-        theme
-
-    );
-
-}
-
-// ------------------------------------------------------
-// Current Theme
-// ------------------------------------------------------
-
-function getCurrentTheme() {
-
-    return document.body.classList.contains("dark")
-
-        ? "dark"
-
-        : "light";
-
-}
-
-// ------------------------------------------------------
-// Toggle Theme
-// ------------------------------------------------------
-
-function toggleTheme() {
-
-    const nextTheme =
-
-        getCurrentTheme() === "dark"
-
-            ? "light"
-
-            : "dark";
-
-    applyTheme(nextTheme);
-
-    saveTheme(nextTheme);
-
-}
-
-// ------------------------------------------------------
-// Theme Icon
-// ------------------------------------------------------
-
-function updateThemeIcon() {
-
-    if (!themeToggle) {
-
-        return;
-
-    }
-
-    themeToggle.textContent =
-
-        getCurrentTheme() === "dark"
-
-            ? "☀️"
-
-            : "🌙";
-
-}
-
-// ------------------------------------------------------
-// Initialize Theme
-// ------------------------------------------------------
-
-function initializeTheme() {
-
-    const savedTheme = getSavedTheme();
-
-    if (savedTheme) {
-
-        applyTheme(savedTheme);
-
-    }
-
-    else {
-
-        applyTheme("light");
-
-    }
-
-}
-
-// ------------------------------------------------------
-// Theme Button
-// ------------------------------------------------------
-
-if (themeToggle) {
-
-    themeToggle.addEventListener(
-
-        "click",
-
-        toggleTheme
-
-    );
-
-}
-
-// ------------------------------------------------------
-// Initialize
-// ------------------------------------------------------
-
-initializeTheme();
-
-// ======================================================
-// SECTION 8
-// MESSAGE RENDERING
-// ======================================================
-
-// ------------------------------------------------------
-// Create Message Container
-// ------------------------------------------------------
-
-function createMessage(type) {
-
-    const message = document.createElement("div");
-
-    message.className = `${type}-message markdown-body`;
-
-    animateMessage(message);
-
-    messages.appendChild(message);
-
-    smoothScrollBottom();
-
-    return message;
-
-}
-
-// ------------------------------------------------------
-// Create Footer
-// ------------------------------------------------------
-
-function createMessageFooter() {
-
-    const footer = document.createElement("div");
-
-    footer.className = "message-footer";
-
-    return footer;
-
-}
-
-// ------------------------------------------------------
-// Create Timestamp
-// ------------------------------------------------------
-
-function createTimestamp() {
-
-    const timestamp = document.createElement("div");
-
-    timestamp.className = "message-time";
-
-    timestamp.textContent = getCurrentTime();
-
-    return timestamp;
-
-}
-
-// ------------------------------------------------------
-// Attach Footer
-// ------------------------------------------------------
-
-function attachFooter(messageElement) {
-
-    const footer = createMessageFooter();
-
-    footer.appendChild(
-
-        createTimestamp()
-
-    );
-
-    messageElement.appendChild(
-
-        footer
-
-    );
-
-}
-
-// ------------------------------------------------------
-// User Message
-// ------------------------------------------------------
-
-function addUserMessage(text) {
-
-    const div = createMessage("user");
-
-    div.dataset.raw = text;
-
-    div.textContent = text;
-
-    appendTimestamp(div);
-
-    animateMessage(div);
-
-}
-
-// ------------------------------------------------------
-// Bot Message
-// ------------------------------------------------------
-
-function addBotMessage(markdown) {
-
-    const div = createMessage("bot");
-
-    div.dataset.raw = markdown;
-
-    div.innerHTML = renderMarkdown(markdown);
-
-    highlightCode(div);
-
-    appendTimestamp(div);
-
-    setupMessageActions(div, markdown);
-
-    animateMessage(div);
-
-}
-
-// ------------------------------------------------------
-// Empty Message
-// ------------------------------------------------------
-
-function addSystemMessage(text) {
-
-    const message = createMessage("bot");
-
-    message.innerHTML = `
-
-        <p>${escapeHTML(text)}</p>
-
-    `;
-
-    attachFooter(message);
-
-    smoothScrollBottom();
-
-}
-
-// ------------------------------------------------------
-// Thinking Indicator
-// ------------------------------------------------------
-
-function showThinking() {
-
-    removeThinking();
-
-    const thinking = document.createElement("div");
-
-    thinking.className = "thinking";
-
-    thinking.id = "thinking";
-
-    thinking.innerHTML = `
-
-        <span>Remi+ is thinking</span>
-
-        <div class="dot"></div>
-
-        <div class="dot"></div>
-
-        <div class="dot"></div>
-
-    `;
-
-    messages.appendChild(
-
-        thinking
-
-    );
-
-    smoothScrollBottom();
-
-}
-
-// ------------------------------------------------------
-// Remove Thinking Indicator
-// ------------------------------------------------------
-
-function removeThinking() {
-
-    const thinking =
-
-        document.getElementById(
-
-            "thinking"
+            event.error
 
         );
 
-    if (thinking) {
+        stopListening();
 
-        thinking.remove();
+    };
 
-    }
 
-}
 
-// ======================================================
-// SECTION 9
-// AI COMMUNICATION
-// ======================================================
+    state.recognition.onend = () => {
 
-// ------------------------------------------------------
-// State
-// ------------------------------------------------------
+        stopListening();
 
-let isGenerating = false;
-
-// ------------------------------------------------------
-// Extract AI Reply
-// Supports multiple n8n response formats
-// ------------------------------------------------------
-
-/* =====================================================
-   EXTRACT AI REPLY
-===================================================== */
-
-function extractReply(data) {
-
-    if (!data) {
-
-        return "⚠️ Empty response received.";
-
-    }
-
-    // n8n array response
-    if (Array.isArray(data)) {
-
-        data = data[0];
-
-    }
-
-    // plain string
-    if (typeof data === "string") {
-
-        return data.trim();
-
-    }
-
-    // nested json property
-    if (data.json) {
-
-        data = data.json;
-
-    }
-
-    // Common reply fields
-    const fields = [
-
-        "reply",
-
-        "output",
-
-        "text",
-
-        "message",
-
-        "response",
-
-        "content",
-
-        "answer",
-
-        "result"
-
-    ];
-
-    for (const field of fields) {
-
-        if (
-
-            typeof data[field] === "string" &&
-
-            data[field].trim() !== ""
-
-        ) {
-
-            return data[field].trim();
-
-        }
-
-    }
-
-    // Nested data object
-    if (data.data) {
-
-        return extractReply(data.data);
-
-    }
-
-    // OpenAI format
-    if (
-
-        data.choices &&
-
-        data.choices[0] &&
-
-        data.choices[0].message &&
-
-        data.choices[0].message.content
-
-    ) {
-
-        return data.choices[0].message.content;
-
-    }
-
-    // AI Agent format
-    if (
-
-        data.message &&
-
-        typeof data.message === "object" &&
-
-        data.message.content
-
-    ) {
-
-        return data.message.content;
-
-    }
-
-    console.warn("Unknown response format:");
-
-    console.log(data);
-
-    return "⚠️ Unexpected response format.";
+    };
 
 }
 
+
+
 // ------------------------------------------------------
-// Thinking Delay
+// START LISTENING
 // ------------------------------------------------------
 
-async function waitThinking() {
+function startListening() {
 
-    if (!ENABLE_THINKING_DELAY) {
+    if (
+
+        !state.recognition ||
+
+        state.isListening
+
+    ) {
 
         return;
 
     }
 
-    await sleep(THINKING_TIME);
-
-}
-
-/* =====================================================
-   ASK AI
-===================================================== */
-
-async function askAI(prompt) {
-
-    if (isGenerating) return;
-
-    isGenerating = true;
-
-    lockInput();
-
-    aiThinking();
-
-    showThinking();
-
     try {
 
-        const response = await fetch(WEBHOOK_URL, {
-
-            method: "POST",
-
-            headers: {
-                "Content-Type": "application/json"
-            },
-
-            body: JSON.stringify({
-
-                message: prompt,
-
-                sessionId: getSessionId()
-
-            })
-
-        });
-
-        // Network error
-        if (!response.ok) {
-
-            throw new Error(
-                `Server returned HTTP ${response.status}`
-            );
-
-        }
-
-        // Read response as text first
-        const raw = await response.text();
-
-        let data;
-
-        try {
-
-            data = JSON.parse(raw);
-
-        }
-
-        catch {
-
-            console.error("Invalid JSON returned:");
-
-            console.log(raw);
-
-            throw new Error("Webhook did not return valid JSON.");
-
-        }
-
-        removeThinking();
-
-        await waitThinking();
-
-        const reply = extractReply(data);
-
-        if (!reply || reply.trim() === "") {
-
-            throw new Error("AI returned an empty response.");
-
-        }
-
-        if (ENABLE_TYPING_ANIMATION) {
-
-            await typeBotMessage(reply);
-
-        }
-
-        else {
-
-            addBotMessage(reply);
-
-        }
-
-        aiReady();
+        state.recognition.start();
 
     }
 
     catch (error) {
 
-        console.error("===================================");
-
-        console.error("Remi+ Request Failed");
-
         console.error(error);
 
-        console.error("Webhook URL:", WEBHOOK_URL);
+    }
 
-        console.error("===================================");
+}
 
-        removeThinking();
 
-        addSystemMessage(
 
-            `❌ ${error.message}`
+// ------------------------------------------------------
+// STOP LISTENING
+// ------------------------------------------------------
+
+function stopListening() {
+
+    if (
+
+        !state.recognition
+
+    ) {
+
+        return;
+
+    }
+
+    state.isListening = false;
+
+    updateMicButton();
+
+    updateVoiceStatus("");
+
+}
+
+
+
+// ------------------------------------------------------
+// TOGGLE LISTENING
+// ------------------------------------------------------
+
+function toggleSpeechRecognition() {
+
+    if (
+
+        state.isListening
+
+    ) {
+
+        state.recognition.stop();
+
+    }
+
+    else {
+
+        startListening();
+
+    }
+
+}
+
+
+
+// ------------------------------------------------------
+// UPDATE MICROPHONE BUTTON
+// ------------------------------------------------------
+
+function updateMicButton() {
+
+    if (!dom.micButton) {
+
+        return;
+
+    }
+
+    if (
+
+        state.isListening
+
+    ) {
+
+        dom.micButton.classList.add(
+
+            "listening"
 
         );
 
-        aiError();
+        dom.micButton.innerHTML =
+
+            `<i class="fa-solid fa-stop"></i>`;
+
+        dom.micButton.title =
+
+            "Stop Listening";
 
     }
 
-    finally {
+    else {
 
-        unlockInput();
+        dom.micButton.classList.remove(
 
-        isGenerating = false;
+            "listening"
+
+        );
+
+        dom.micButton.innerHTML =
+
+            `<i class="fa-solid fa-microphone"></i>`;
+
+        dom.micButton.title =
+
+            "Voice Input";
 
     }
 
 }
 
+
+
 // ------------------------------------------------------
-// Send Message
+// UPDATE VOICE STATUS
 // ------------------------------------------------------
 
-function sendMessage() {
+function updateVoiceStatus(text) {
 
-    if (isGenerating) {
+    if (!dom.voiceStatus) {
 
         return;
 
     }
 
-    const prompt =
-
-        userInput.value.trim();
-
-    if (!prompt) {
-
-        return;
-
-    }
-
-    addUserMessage(prompt);
-
-    userInput.value = "";
-
-    autoGrowTextarea();
-
-    askAI(prompt);
+    dom.voiceStatus.textContent = text;
 
 }
 
-// ======================================================
-// SECTION 10
-// TYPING ANIMATION
-// ======================================================
+
 
 // ------------------------------------------------------
-// Type AI Response
+// TEXT TO SPEECH
 // ------------------------------------------------------
 
-/* =====================================================
-   TYPE BOT MESSAGE
-===================================================== */
+function speak(text) {
 
-async function typeBotMessage(markdown) {
+    if (
 
-    aiTyping();
+        !FEATURES.textToSpeech ||
 
-    // Safety check
-    if (!markdown || typeof markdown !== "string") {
+        !window.speechSynthesis
 
-        markdown = "Sorry, I couldn't generate a response.";
+    ) {
+
+        return;
 
     }
 
-    // Create message container
-    const message = createMessage("bot");
+    speechSynthesis.cancel();
 
-    // Create blinking cursor
-    const cursor = addTypingCursor(message);
+    const utterance =
 
-    // Split into words
-    const words = markdown.trim().split(/\s+/);
+        new SpeechSynthesisUtterance(
 
-    let currentText = "";
+            text.replace(/[#>*`]/g, "")
 
-    // Render every few words for smoother performance
-    const RENDER_INTERVAL = 3;
+        );
 
-    for (let i = 0; i < words.length; i++) {
+    utterance.lang =
 
-        currentText += words[i] + " ";
+        SPEECH.language;
 
-        if (
-            i % RENDER_INTERVAL === 0 ||
-            i === words.length - 1
-        ) {
+    utterance.rate =
 
-            message.innerHTML = renderMarkdown(currentText);
+        SPEECH.rate;
 
-            // Keep cursor at bottom
-            message.appendChild(cursor);
+    utterance.pitch =
 
-            smoothScrollBottom();
+        SPEECH.pitch;
 
-        }
+    utterance.volume =
 
-        // Skip animation when tab isn't visible
-        if (document.hidden) {
+        SPEECH.volume;
 
-            continue;
+    state.currentSpeech =
 
-        }
+        utterance;
 
-        let delay = randomDelay();
+    utterance.onstart = () => {
 
-        if (/[.,!?;:]$/.test(words[i])) {
+        aiSpeaking();
 
-            delay += 100;
+    };
 
-        }
+    utterance.onend = () => {
 
-        await sleep(delay);
+        aiReady();
 
-    }
+    };
 
-    // Remove cursor
-    removeTypingCursor(cursor);
+    speechSynthesis.speak(
 
-    // Final render
-    message.innerHTML = renderMarkdown(markdown);
+        utterance
 
-    // Highlight code ONCE
-    highlightCode(message);
-
-    // Footer
-    attachFooter(message);
-
-    // Copy / regenerate / speak buttons
-    attachMessageActions(
-        message,
-        markdown
     );
 
-    smoothScrollBottom();
+}
+
+
+
+// ------------------------------------------------------
+// STOP SPEAKING
+// ------------------------------------------------------
+
+function stopSpeaking() {
+
+    if (
+
+        window.speechSynthesis
+
+    ) {
+
+        speechSynthesis.cancel();
+
+    }
 
     aiReady();
 
 }
 
-// ======================================================
-// SECTION 11
-// MESSAGE ACTIONS
-// ======================================================
+
 
 // ------------------------------------------------------
-// Create Action Button
+// TOGGLE SPEAKING
 // ------------------------------------------------------
 
-function createActionButton(icon, title, onClick) {
+function toggleSpeaking(text) {
 
-    const button = document.createElement("button");
+    if (
 
-    button.className = "action-btn";
+        speechSynthesis.speaking
 
-    button.type = "button";
+    ) {
 
-    button.title = title;
+        stopSpeaking();
 
-    button.innerHTML = icon;
+    }
 
-    button.addEventListener(
+    else {
 
-        "click",
+        speak(text);
 
-        onClick
-
-    );
-
-    return button;
+    }
 
 }
 
+
+
 // ------------------------------------------------------
-// Create Action Bar
+// CHECK SPEECH SUPPORT
 // ------------------------------------------------------
 
-function createMessageActions(markdown) {
+function speechSupported() {
 
-    const actions = document.createElement("div");
+    return (
 
-    actions.className = "message-actions";
+        "SpeechRecognition" in window ||
 
-    // ==========================================
-    // Copy
-    // ==========================================
-
-    const copyButton = createActionButton(
-
-        "📋",
-
-        "Copy",
-
-        async () => {
-
-            try {
-
-                await navigator.clipboard.writeText(
-
-                    markdown
-
-                );
-
-                copyButton.innerHTML = "✅";
-
-                showToast(
-
-                    "Copied to clipboard"
-
-                );
-
-                setTimeout(() => {
-
-                    copyButton.innerHTML = "📋";
-
-                }, 1500);
-
-            }
-
-            catch {
-
-                showToast(
-
-                    "Unable to copy"
-
-                );
-
-            }
-
-        }
+        "webkitSpeechRecognition" in window
 
     );
-
-    // ==========================================
-    // Read Aloud
-    // ==========================================
-
-    const speakButton = createActionButton(
-
-        "🔊",
-
-        "Read Aloud",
-
-        () => {
-
-            speak(
-
-                markdownToSpeech(markdown)
-
-            );
-
-        }
-
-    );
-
-    // ==========================================
-    // Stop Reading
-    // ==========================================
-
-    const stopButton = createActionButton(
-
-        "⏹",
-
-        "Stop",
-
-        () => {
-
-            stopSpeaking();
-
-        }
-
-    );
-
-    // ==========================================
-    // Regenerate
-    // ==========================================
-
-    const regenerateButton = createActionButton(
-
-        "🔄",
-
-        "Regenerate",
-
-        () => {
-
-            if (isGenerating) {
-
-                return;
-
-            }
-
-            const userMessages =
-
-                document.querySelectorAll(
-
-                    ".user-message"
-
-                );
-
-            if (!userMessages.length) {
-
-                return;
-
-            }
-
-            const lastPrompt =
-
-                userMessages[
-
-                    userMessages.length - 1
-
-                ].innerText;
-
-            askAI(lastPrompt);
-
-        }
-
-    );
-
-    // ==========================================
-    // Append Buttons
-    // ==========================================
-
-    actions.appendChild(copyButton);
-
-    actions.appendChild(speakButton);
-
-    actions.appendChild(stopButton);
-
-    actions.appendChild(regenerateButton);
-
-    return actions;
 
 }
 
+
+
 // ------------------------------------------------------
-// Attach Action Bar
+// CHECK TTS SUPPORT
 // ------------------------------------------------------
 
-function attachMessageActions(
+function textToSpeechSupported() {
 
-    message,
+    return (
 
-    markdown
+        "speechSynthesis" in window
 
-) {
+    );
 
-    const footer =
+}
 
-        message.querySelector(
 
-            ".message-footer"
 
-        );
+// ------------------------------------------------------
+// INITIALIZE AFTER DOM
+// ------------------------------------------------------
 
-    if (!footer) {
+initializeSpeech();
+
+// ======================================================
+// SECTION 12
+// AI STATUS & UI MANAGER
+// ======================================================
+
+
+
+// ------------------------------------------------------
+// UPDATE AI STATUS
+// ------------------------------------------------------
+
+function updateAIStatus(text, color = "") {
+
+    if (!dom.aiStatus) {
 
         return;
 
     }
 
-    footer.appendChild(
+    dom.aiStatus.textContent = text;
 
-        createMessageActions(
+    dom.aiStatus.dataset.state = text;
 
-            markdown
+    dom.aiStatus.style.color = color;
+
+}
+
+
+
+// ------------------------------------------------------
+// READY
+// ------------------------------------------------------
+
+function aiReady() {
+
+    updateAIStatus(
+
+        "Ready",
+
+        "#22C55E"
+
+    );
+
+
+
+    unlockInput();
+
+    updateSendButton();
+
+}
+
+
+
+// ------------------------------------------------------
+// THINKING
+// ------------------------------------------------------
+
+function aiThinking() {
+
+    updateAIStatus(
+
+        "Thinking...",
+
+        "#F59E0B"
+
+    );
+
+
+
+    lockInput();
+
+}
+
+
+
+// ------------------------------------------------------
+// TYPING
+// ------------------------------------------------------
+
+function aiTyping() {
+
+    updateAIStatus(
+
+        "Typing...",
+
+        "#3B82F6"
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// SPEAKING
+// ------------------------------------------------------
+
+function aiSpeaking() {
+
+    updateAIStatus(
+
+        "Speaking...",
+
+        "#8B5CF6"
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// LISTENING
+// ------------------------------------------------------
+
+function aiListening() {
+
+    updateAIStatus(
+
+        "Listening...",
+
+        "#EF4444"
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// ERROR
+// ------------------------------------------------------
+
+function aiError() {
+
+    updateAIStatus(
+
+        "Error",
+
+        "#EF4444"
+
+    );
+
+
+
+    unlockInput();
+
+}
+
+
+
+// ------------------------------------------------------
+// LOADING
+// ------------------------------------------------------
+
+function aiLoading() {
+
+    updateAIStatus(
+
+        "Loading...",
+
+        "#06B6D4"
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// LOCK INPUT
+// ------------------------------------------------------
+
+function lockInput() {
+
+    if (dom.userInput) {
+
+        dom.userInput.disabled = true;
+
+    }
+
+
+
+    if (dom.sendButton) {
+
+        dom.sendButton.disabled = true;
+
+    }
+
+
+
+    if (dom.micButton) {
+
+        dom.micButton.disabled = true;
+
+    }
+
+}
+
+
+
+// ------------------------------------------------------
+// UNLOCK INPUT
+// ------------------------------------------------------
+
+function unlockInput() {
+
+    if (dom.userInput) {
+
+        dom.userInput.disabled = false;
+
+    }
+
+
+
+    if (dom.sendButton) {
+
+        dom.sendButton.disabled =
+
+            isEmpty(
+
+                dom.userInput.value
+
+            );
+
+    }
+
+
+
+    if (dom.micButton) {
+
+        dom.micButton.disabled = false;
+
+    }
+
+}
+
+
+
+// ------------------------------------------------------
+// SHOW LOADING OVERLAY
+// ------------------------------------------------------
+
+function showLoadingOverlay() {
+
+    if (
+
+        document.getElementById(
+
+            "loadingOverlay"
 
         )
+
+    ) {
+
+        return;
+
+    }
+
+
+
+    const overlay =
+
+        document.createElement(
+
+            "div"
+
+        );
+
+
+
+    overlay.id =
+
+        "loadingOverlay";
+
+
+
+    overlay.className =
+
+        "loading-overlay";
+
+
+
+    overlay.innerHTML = `
+
+<div class="loading-spinner"></div>
+
+<div class="loading-text">
+
+Loading...
+
+</div>
+
+`;
+
+
+
+    document.body.appendChild(
+
+        overlay
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// HIDE LOADING OVERLAY
+// ------------------------------------------------------
+
+function hideLoadingOverlay() {
+
+    document
+
+        .getElementById(
+
+            "loadingOverlay"
+
+        )
+
+        ?.remove();
+
+}
+
+
+
+// ------------------------------------------------------
+// ENABLE BUTTON
+// ------------------------------------------------------
+
+function enableButton(button) {
+
+    if (!button) {
+
+        return;
+
+    }
+
+
+
+    button.disabled = false;
+
+}
+
+
+
+// ------------------------------------------------------
+// DISABLE BUTTON
+// ------------------------------------------------------
+
+function disableButton(button) {
+
+    if (!button) {
+
+        return;
+
+    }
+
+
+
+    button.disabled = true;
+
+}
+
+
+
+// ------------------------------------------------------
+// SHOW STATUS BADGE
+// ------------------------------------------------------
+
+function setStatusBadge(text, className = "") {
+
+    if (!dom.aiStatus) {
+
+        return;
+
+    }
+
+
+
+    dom.aiStatus.textContent = text;
+
+    dom.aiStatus.className =
+
+        className;
+
+}
+
+
+
+// ------------------------------------------------------
+// RESET UI
+// ------------------------------------------------------
+
+function resetUI() {
+
+    removeThinking();
+
+    stopSpeaking();
+
+
+
+    if (
+
+        state.isListening &&
+
+        state.recognition
+
+    ) {
+
+        state.recognition.stop();
+
+    }
+
+
+
+    unlockInput();
+
+    aiReady();
+
+}
+
+
+
+// ------------------------------------------------------
+// FLASH STATUS
+// ------------------------------------------------------
+
+function flashStatus(
+
+    text,
+
+    color,
+
+    duration = 1500
+
+) {
+
+    updateAIStatus(
+
+        text,
+
+        color
+
+    );
+
+
+
+    setTimeout(
+
+        aiReady,
+
+        duration
 
     );
 
@@ -2383,189 +5280,697 @@ function attachMessageActions(
 
 // ======================================================
 // SECTION 13
-// SEND MESSAGE & EVENT LISTENERS
+// ADVANCED UTILITIES
 // ======================================================
 
-// ------------------------------------------------------
-// Send Message
-// ------------------------------------------------------
 
-function sendMessage() {
-
-    if (isGenerating) return;
-
-    const text = userInput.value.trim();
-
-    if (!text) return;
-
-    addUserMessage(text);
-
-    userInput.value = "";
-
-    autoGrowTextarea();
-
-    rememberPrompt(text);
-
-    askAI(text);
-
-}
 
 // ------------------------------------------------------
-// Send Button
+// TOAST NOTIFICATION
 // ------------------------------------------------------
 
-sendButton.addEventListener("click", () => {
+function showToast(message, type = "success") {
 
-    sendMessage();
+    if (!FEATURES.toastNotifications) {
 
-});
-
-// ------------------------------------------------------
-// Press Enter to Send
-// Shift + Enter = New Line
-// ------------------------------------------------------
-
-userInput.addEventListener("keydown", (event) => {
-
-    if (
-
-        event.key === "Enter" &&
-        !event.shiftKey
-
-    ) {
-
-        event.preventDefault();
-
-        sendMessage();
+        return;
 
     }
 
-});
+    const existing = document.querySelector(".toast");
 
-// ------------------------------------------------------
-// Auto Grow Textarea
-// ------------------------------------------------------
+    if (existing) {
 
-userInput.addEventListener("input", () => {
-
-    autoGrowTextarea();
-
-});
-
-// ------------------------------------------------------
-// Auto Focus
-// ------------------------------------------------------
-
-window.addEventListener("load", () => {
-
-    userInput.focus();
-
-});
-
-// ------------------------------------------------------
-// Prevent Drag & Drop
-// ------------------------------------------------------
-
-document.addEventListener("dragover", (event) => {
-
-    event.preventDefault();
-
-});
-
-document.addEventListener("drop", (event) => {
-
-    event.preventDefault();
-
-});
-
-// ------------------------------------------------------
-// Stop Speaking When Tab Hidden
-// ------------------------------------------------------
-
-document.addEventListener("visibilitychange", () => {
-
-    if (document.hidden) {
-
-        stopSpeaking();
+        existing.remove();
 
     }
 
-});
+    const toast = document.createElement("div");
 
-// ------------------------------------------------------
-// Focus Input When Returning
-// ------------------------------------------------------
+    toast.className = `toast ${type}`;
 
-window.addEventListener("focus", () => {
+    toast.innerHTML = `
 
-    if (!isGenerating) {
+        <span>${message}</span>
 
-        userInput.focus();
+    `;
 
-    }
+    document.body.appendChild(toast);
 
-});
+    requestAnimationFrame(() => {
 
-// ------------------------------------------------------
-// Initial Status
-// ------------------------------------------------------
-
-setStatus("✅ Ready");
-
-// ======================================================
-// SECTION 14
-// CHAT HISTORY & SESSION MANAGEMENT
-// ======================================================
-
-// ------------------------------------------------------
-// Configuration
-// ------------------------------------------------------
-
-const CHAT_HISTORY_KEY = "remiplus-chat-history";
-
-// ------------------------------------------------------
-// Save Conversation
-// ------------------------------------------------------
-
-function saveChatHistory() {
-
-    const history = [];
-
-    document.querySelectorAll(
-        ".user-message, .bot-message"
-    ).forEach(message => {
-
-        history.push({
-
-            role: message.classList.contains("user-message")
-                ? "user"
-                : "bot",
-
-            content: message.dataset.raw || message.innerText
-
-        });
+        toast.classList.add("show");
 
     });
 
-    localStorage.setItem(
+    setTimeout(() => {
 
-        CHAT_HISTORY_KEY,
+        toast.classList.remove("show");
 
-        JSON.stringify(history)
+        setTimeout(() => {
+
+            toast.remove();
+
+        }, 300);
+
+    }, UI.toastDuration);
+
+}
+
+
+
+// ------------------------------------------------------
+// COPY TO CLIPBOARD
+// ------------------------------------------------------
+
+async function copyText(text) {
+
+    try {
+
+        await navigator.clipboard.writeText(text);
+
+        showToast("Copied to clipboard");
+
+        return true;
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        showToast(
+
+            "Unable to copy",
+
+            "error"
+
+        );
+
+        return false;
+
+    }
+
+}
+
+
+
+// ------------------------------------------------------
+// DOWNLOAD FILE
+// ------------------------------------------------------
+
+function downloadFile(filename, content, type = "text/plain") {
+
+    const blob = new Blob(
+
+        [content],
+
+        {
+
+            type
+
+        }
+
+    );
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+
+    link.href = url;
+
+    link.download = filename;
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    link.remove();
+
+    URL.revokeObjectURL(url);
+
+}
+
+
+
+// ------------------------------------------------------
+// EXPORT CHAT
+// ------------------------------------------------------
+
+function exportChat() {
+
+    const history = localStorage.getItem(
+
+        STORAGE_KEYS.CHAT_HISTORY
+
+    ) || "[]";
+
+
+
+    downloadFile(
+
+        `RemiPlus_${new Date().toISOString()}.json`,
+
+        history,
+
+        "application/json"
+
+    );
+
+
+
+    showToast("Chat exported");
+
+}
+
+
+
+// ------------------------------------------------------
+// IMPORT CHAT
+// ------------------------------------------------------
+
+function importChat(file) {
+
+    const reader = new FileReader();
+
+    reader.onload = event => {
+
+        try {
+
+            const data = JSON.parse(
+
+                event.target.result
+
+            );
+
+
+
+            localStorage.setItem(
+
+                STORAGE_KEYS.CHAT_HISTORY,
+
+                JSON.stringify(data)
+
+            );
+
+
+
+            location.reload();
+
+        }
+
+        catch {
+
+            showToast(
+
+                "Invalid chat file",
+
+                "error"
+
+            );
+
+        }
+
+    };
+
+
+
+    reader.readAsText(file);
+
+}
+
+
+
+// ------------------------------------------------------
+// COPY MESSAGE
+// ------------------------------------------------------
+
+function copyMessage(button) {
+
+    const message =
+
+        button.closest(
+
+            ".bot-message,.user-message"
+
+        );
+
+
+
+    if (!message) {
+
+        return;
+
+    }
+
+
+
+    copyText(
+
+        message.innerText.trim()
 
     );
 
 }
 
+
+
 // ------------------------------------------------------
-// Restore Conversation
+// SHARE MESSAGE
 // ------------------------------------------------------
 
-function loadChatHistory() {
+async function shareMessage(button) {
+
+    const message =
+
+        button.closest(
+
+            ".bot-message,.user-message"
+
+        );
+
+
+
+    if (!message) {
+
+        return;
+
+    }
+
+
+
+    const text =
+
+        message.innerText.trim();
+
+
+
+    if (
+
+        navigator.share
+
+    ) {
+
+        try {
+
+            await navigator.share({
+
+                title: APP_CONFIG.name,
+
+                text
+
+            });
+
+        }
+
+        catch {}
+
+    }
+
+    else {
+
+        copyText(text);
+
+    }
+
+}
+
+
+
+// ------------------------------------------------------
+// SAVE CHAT
+// ------------------------------------------------------
+
+function saveChat() {
+
+    if (
+
+        !FEATURES.autoSaveHistory
+
+    ) {
+
+        return;
+
+    }
+
+    localStorage.setItem(
+
+        STORAGE_KEYS.CHAT_HISTORY,
+
+        JSON.stringify(chat.history)
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// CLEAR CHAT
+// ------------------------------------------------------
+
+function clearChat() {
+
+    if (
+
+        !confirm(
+
+            "Clear entire conversation?"
+
+        )
+
+    ) {
+
+        return;
+
+    }
+
+
+
+    chat.history = [];
+
+
+
+    localStorage.removeItem(
+
+        STORAGE_KEYS.CHAT_HISTORY
+
+    );
+
+
+
+    if (dom.messages) {
+
+        dom.messages.innerHTML = "";
+
+    }
+
+
+
+    showToast(
+
+        "Chat cleared"
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// FORMAT DATE
+// ------------------------------------------------------
+
+function formatDate(date = new Date()) {
+
+    return date.toLocaleString(
+
+        [],
+
+        {
+
+            year: "numeric",
+
+            month: "short",
+
+            day: "numeric",
+
+            hour: "2-digit",
+
+            minute: "2-digit"
+
+        }
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// UNIQUE ID
+// ------------------------------------------------------
+
+function generateId() {
+
+    return (
+
+        Date.now().toString(36) +
+
+        Math.random()
+
+            .toString(36)
+
+            .substring(2, 10)
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// RANDOM NUMBER
+// ------------------------------------------------------
+
+function randomNumber(min, max) {
+
+    return Math.floor(
+
+        Math.random() *
+
+        (max - min + 1)
+
+    ) + min;
+
+}
+
+
+
+// ------------------------------------------------------
+// WAIT
+// ------------------------------------------------------
+
+function sleep(ms) {
+
+    return new Promise(
+
+        resolve =>
+
+            setTimeout(
+
+                resolve,
+
+                ms
+
+            )
+
+    );
+
+}
+
+
+
+// ------------------------------------------------------
+// DEBOUNCE
+// ------------------------------------------------------
+
+function debounce(fn, delay = 250) {
+
+    let timeout;
+
+    return (...args) => {
+
+        clearTimeout(timeout);
+
+        timeout = setTimeout(
+
+            () => fn(...args),
+
+            delay
+
+        );
+
+    };
+
+}
+
+
+
+// ------------------------------------------------------
+// THROTTLE
+// ------------------------------------------------------
+
+function throttle(fn, delay = 250) {
+
+    let waiting = false;
+
+    return (...args) => {
+
+        if (waiting) {
+
+            return;
+
+        }
+
+        fn(...args);
+
+        waiting = true;
+
+        setTimeout(() => {
+
+            waiting = false;
+
+        }, delay);
+
+    };
+
+}
+
+
+
+// ------------------------------------------------------
+// SCROLL TO BOTTOM
+// ------------------------------------------------------
+
+function safeScrollBottom() {
+
+    if (!dom.messages) {
+
+        return;
+
+    }
+
+    dom.messages.scrollTo({
+
+        top: dom.messages.scrollHeight,
+
+        behavior: UI.scrollBehavior
+
+    });
+
+}
+
+// ======================================================
+// SECTION 14
+// APPLICATION BOOTSTRAP
+// ======================================================
+
+
+
+// ------------------------------------------------------
+// START APPLICATION
+// ------------------------------------------------------
+
+async function startApplication() {
+
+    console.log(
+        `${APP_CONFIG.name} starting...`
+    );
+
+    try {
+
+        // Cache DOM Elements
+        cacheDOM();
+
+        // Initialize Theme
+        initializeTheme();
+
+        // Restore Session
+        initializeSession();
+
+        // Restore Chat
+        restoreChatHistory();
+
+        // Initialize Speech
+        initializeSpeech();
+
+        // Register Events
+        registerEventListeners();
+
+        // Prepare UI
+        prepareInterface();
+
+        // Ready
+        aiReady();
+
+        console.log(
+            "Application Ready."
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+
+            "Initialization Error:",
+
+            error
+
+        );
+
+        aiError();
+
+    }
+
+}
+
+
+
+// ------------------------------------------------------
+// PREPARE UI
+// ------------------------------------------------------
+
+function prepareInterface() {
+
+    if (CHAT.autoFocus && dom.userInput) {
+
+        dom.userInput.focus();
+
+    }
+
+    autoResizeTextarea();
+
+    updateSendButton();
+
+    safeScrollBottom();
+
+}
+
+
+
+// ------------------------------------------------------
+// SESSION INITIALIZATION
+// ------------------------------------------------------
+
+function initializeSession() {
+
+    state.sessionId = getSessionId();
+
+}
+
+
+
+// ------------------------------------------------------
+// RESTORE CHAT HISTORY
+// ------------------------------------------------------
+
+function restoreChatHistory() {
+
+    if (
+
+        !FEATURES.restoreHistory
+
+    ) {
+
+        return;
+
+    }
 
     const history = localStorage.getItem(
 
-        CHAT_HISTORY_KEY
+        STORAGE_KEYS.CHAT_HISTORY
 
     );
 
@@ -2577,25 +5982,53 @@ function loadChatHistory() {
 
     try {
 
-        const messagesData = JSON.parse(history);
+        const messages = JSON.parse(
 
-        messages.innerHTML = "";
+            history
 
-        messagesData.forEach(item => {
+        );
 
-            if (item.role === "user") {
+        if (!Array.isArray(messages)) {
 
-                addUserMessage(item.content);
+            return;
+
+        }
+
+        chat.history = messages;
+
+        messages.forEach(message => {
+
+            if (
+
+                message.role === "user"
+
+            ) {
+
+                addUserMessage(
+
+                    message.content,
+
+                    false
+
+                );
 
             }
 
             else {
 
-                addBotMessage(item.content);
+                addBotMessage(
+
+                    message.content,
+
+                    false
+
+                );
 
             }
 
         });
+
+        safeScrollBottom();
 
     }
 
@@ -2603,7 +6036,7 @@ function loadChatHistory() {
 
         console.error(
 
-            "Unable to restore chat history.",
+            "History Restore Failed",
 
             error
 
@@ -2613,126 +6046,54 @@ function loadChatHistory() {
 
 }
 
-// ------------------------------------------------------
-// Clear Saved History
-// ------------------------------------------------------
 
-function clearChatHistory() {
-
-    localStorage.removeItem(
-
-        CHAT_HISTORY_KEY
-
-    );
-
-}
 
 // ------------------------------------------------------
-// Automatically Save After Every Message
-// ------------------------------------------------------
-
-const historyObserver = new MutationObserver(() => {
-
-    saveChatHistory();
-
-});
-
-historyObserver.observe(
-
-    messages,
-
-    {
-
-        childList: true,
-
-        subtree: true
-
-    }
-
-);
-
-// ------------------------------------------------------
-// New Conversation
-// ------------------------------------------------------
-
-function newConversation() {
-
-    sessionId = crypto.randomUUID();
-
-    localStorage.setItem(
-
-        "isaagen-session",
-
-        sessionId
-
-    );
-
-    clearChatHistory();
-
-    messages.innerHTML = "";
-
-    addBotMessage(
-
-`# 👋 New Conversation
-
-Hello!
-
-I'm **Remi+**.
-
-How can I help you today?`
-
-    );
-
-}
-
-// ------------------------------------------------------
-// Clear Chat Button
-// ------------------------------------------------------
-
-clearButton.addEventListener(
-
-    "click",
-
-    () => {
-
-        if (
-
-            !confirm(
-
-                "Start a new conversation?"
-
-            )
-
-        ) {
-
-            return;
-
-        }
-
-        newConversation();
-
-    }
-
-);
-
-// ------------------------------------------------------
-// Restore Conversation When Page Loads
+// GLOBAL ERROR HANDLER
 // ------------------------------------------------------
 
 window.addEventListener(
 
-    "load",
+    "error",
 
-    () => {
+    event => {
 
-        loadChatHistory();
+        console.error(
+
+            event.error
+
+        );
 
     }
 
 );
 
+
+
 // ------------------------------------------------------
-// Save Before Leaving
+// PROMISE ERROR HANDLER
+// ------------------------------------------------------
+
+window.addEventListener(
+
+    "unhandledrejection",
+
+    event => {
+
+        console.error(
+
+            event.reason
+
+        );
+
+    }
+
+);
+
+
+
+// ------------------------------------------------------
+// BEFORE UNLOAD
 // ------------------------------------------------------
 
 window.addEventListener(
@@ -2741,614 +6102,54 @@ window.addEventListener(
 
     () => {
 
-        saveChatHistory();
+        if (
 
-        stopSpeaking();
+            FEATURES.autoSaveHistory
+
+        ) {
+
+            saveChat();
+
+        }
 
     }
 
 );
 
-// ======================================================
-// SECTION 15
-// EXPORT, SHORTCUTS & APP UTILITIES
-// ======================================================
+
 
 // ------------------------------------------------------
-// Export Conversation (.txt)
-// ------------------------------------------------------
-
-function exportConversationTXT() {
-
-    const history = [];
-
-    document.querySelectorAll(
-        ".user-message, .bot-message"
-    ).forEach(message => {
-
-        const role = message.classList.contains("user-message")
-            ? "You"
-            : "Remi+";
-
-        history.push(
-
-            `${role}:\n${message.dataset.raw || message.innerText}\n`
-
-        );
-
-    });
-
-    const blob = new Blob(
-
-        [history.join("\n----------------------------------------\n\n")],
-
-        {
-
-            type: "text/plain"
-
-        }
-
-    );
-
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-
-    a.href = url;
-
-    a.download =
-
-        `RemiPlus-Conversation-${Date.now()}.txt`;
-
-    a.click();
-
-    URL.revokeObjectURL(url);
-
-}
-
-// ------------------------------------------------------
-// Export Conversation (.md)
-// ------------------------------------------------------
-
-function exportConversationMarkdown() {
-
-    const history = [];
-
-    document.querySelectorAll(
-        ".user-message, .bot-message"
-    ).forEach(message => {
-
-        const role = message.classList.contains("user-message")
-            ? "## 👤 You"
-            : "## 🤖 Remi+";
-
-        history.push(
-
-`${role}
-
-${message.dataset.raw || message.innerText}
-
-`
-
-        );
-
-    });
-
-    const blob = new Blob(
-
-        [history.join("\n---\n\n")],
-
-        {
-
-            type: "text/markdown"
-
-        }
-
-    );
-
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-
-    a.href = url;
-
-    a.download =
-
-        `RemiPlus-Conversation-${Date.now()}.md`;
-
-    a.click();
-
-    URL.revokeObjectURL(url);
-
-}
-
-// ------------------------------------------------------
-// Keyboard Shortcuts
+// DOM READY
 // ------------------------------------------------------
 
 document.addEventListener(
 
-    "keydown",
-
-    (event) => {
-
-        // Ctrl + L
-        if (
-
-            event.ctrlKey &&
-            event.key.toLowerCase() === "l"
-
-        ) {
-
-            event.preventDefault();
-
-            clearButton.click();
-
-        }
-
-        // Ctrl + E
-        if (
-
-            event.ctrlKey &&
-            event.key.toLowerCase() === "e"
-
-        ) {
-
-            event.preventDefault();
-
-            exportConversationTXT();
-
-        }
-
-        // Ctrl + Shift + E
-        if (
-
-            event.ctrlKey &&
-            event.shiftKey &&
-            event.key.toLowerCase() === "e"
-
-        ) {
-
-            event.preventDefault();
-
-            exportConversationMarkdown();
-
-        }
-
-        // ESC
-        if (
-
-            event.key === "Escape"
-
-        ) {
-
-            stopSpeaking();
-
-        }
-
-    }
-
-);
-
-// ------------------------------------------------------
-// Connection Status
-// ------------------------------------------------------
-
-window.addEventListener(
-
-    "online",
+    "DOMContentLoaded",
 
     () => {
 
-        setStatus("🟢 Connected");
+        startApplication();
 
     }
 
 );
 
-window.addEventListener(
 
-    "offline",
-
-    () => {
-
-        setStatus("🔴 Offline");
-
-    }
-
-);
 
 // ------------------------------------------------------
-// Console Branding
+// APP VERSION
 // ------------------------------------------------------
 
 console.log(
 
-    "%cRemi+ AI Agent",
+    `%c${APP_CONFIG.name} ${APP_CONFIG.version}`,
 
-    "color:#6D5EF9;font-size:20px;font-weight:bold;"
-
-);
-
-console.log(
-
-    "%cPowered by GPT-5.5 • n8n • OpenRouter",
-
-    "color:#999;font-size:13px;"
+    "color:#6D5EF9;font-weight:bold;font-size:18px"
 
 );
 
-console.log(
 
-    "Session ID:",
-
-    sessionId
-
-);
 
 // ------------------------------------------------------
-// Initialize Empty Chat
+// END OF FILE
 // ------------------------------------------------------
-
-window.addEventListener(
-
-    "load",
-
-    () => {
-
-        if (
-
-            messages.children.length === 0
-
-        ) {
-
-            addBotMessage(
-
-`# 👋 Welcome to Remi+
-
-I'm your intelligent AI assistant.
-
-How can I help you today?`
-
-            );
-
-        }
-
-    }
-
-);
-
-// ------------------------------------------------------
-// Initial Ready State
-// ------------------------------------------------------
-
-aiReady();
-
-// ======================================================
-// SECTION 16
-// ADVANCED CHAT UX
-// ======================================================
-
-// ------------------------------------------------------
-// Variables
-// ------------------------------------------------------
-
-let autoScroll = true;
-
-let lastUserPrompt = "";
-
-let abortController = null;
-
-// ------------------------------------------------------
-// Save Last Prompt
-// ------------------------------------------------------
-
-function rememberPrompt(prompt) {
-
-    lastUserPrompt = prompt;
-
-}
-
-// ------------------------------------------------------
-// Stop Generating
-// ------------------------------------------------------
-
-function stopGenerating() {
-
-    if (!isGenerating) return;
-
-    if (abortController) {
-
-        abortController.abort();
-
-    }
-
-    removeThinking();
-
-    unlockInput();
-
-    aiReady();
-
-    isGenerating = false;
-
-}
-
-// ------------------------------------------------------
-// Retry Last Prompt
-// ------------------------------------------------------
-
-function regenerateLastResponse() {
-
-    if (isGenerating) return;
-
-    if (!lastUserPrompt) return;
-
-    askAI(lastUserPrompt);
-
-}
-
-// ------------------------------------------------------
-// Copy Code Blocks
-// ------------------------------------------------------
-
-function installCodeCopyButtons() {
-
-    document.querySelectorAll("pre").forEach(pre => {
-
-        if (pre.querySelector(".copy-code-btn")) {
-
-            return;
-
-        }
-
-        const button = document.createElement("button");
-
-        button.className = "copy-code-btn";
-
-        button.textContent = "Copy";
-
-        button.onclick = async () => {
-
-            const code = pre.querySelector("code");
-
-            if (!code) return;
-
-            try {
-
-                await navigator.clipboard.writeText(
-
-                    code.innerText
-
-                );
-
-                button.textContent = "Copied";
-
-                setTimeout(() => {
-
-                    button.textContent = "Copy";
-
-                }, 1500);
-
-            }
-
-            catch {
-
-                button.textContent = "Error";
-
-            }
-
-        };
-
-        pre.appendChild(button);
-
-    });
-
-}
-
-// ------------------------------------------------------
-// Auto Install After New AI Message
-// ------------------------------------------------------
-
-const originalHighlightCode = highlightCode;
-
-highlightCode = function(container) {
-
-    originalHighlightCode(container);
-
-    installCodeCopyButtons();
-
-};
-
-// ------------------------------------------------------
-// Smart Auto Scroll
-// ------------------------------------------------------
-
-messages.addEventListener("scroll", () => {
-
-    const distance =
-
-        messages.scrollHeight -
-
-        messages.scrollTop -
-
-        messages.clientHeight;
-
-    autoScroll = distance < 120;
-
-});
-
-// ------------------------------------------------------
-// Better Scroll
-// ------------------------------------------------------
-
-function smoothScrollBottom() {
-
-    if (!autoScroll) return;
-
-    messages.scrollTo({
-
-        top: messages.scrollHeight,
-
-        behavior: "smooth"
-
-    });
-
-}
-
-// ------------------------------------------------------
-// Floating Scroll Button
-// ------------------------------------------------------
-
-const scrollButton = document.createElement("button");
-
-scrollButton.className = "scroll-bottom-btn";
-
-scrollButton.innerHTML = "⬇";
-
-scrollButton.title = "Scroll to Bottom";
-
-document.body.appendChild(scrollButton);
-
-scrollButton.onclick = () => {
-
-    autoScroll = true;
-
-    smoothScrollBottom();
-
-};
-
-messages.addEventListener("scroll", () => {
-
-    const distance =
-
-        messages.scrollHeight -
-
-        messages.scrollTop -
-
-        messages.clientHeight;
-
-    if (distance > 250) {
-
-        scrollButton.classList.add("show");
-
-    }
-
-    else {
-
-        scrollButton.classList.remove("show");
-
-    }
-
-});
-
-// ------------------------------------------------------
-// Better askAI Preparation
-// ------------------------------------------------------
-
-const originalAskAI = askAI;
-
-askAI = async function(message) {
-
-    rememberPrompt(message);
-
-    abortController = new AbortController();
-
-    await originalAskAI(message);
-
-};
-
-// ------------------------------------------------------
-// Mobile Optimisation
-// ------------------------------------------------------
-
-userInput.addEventListener("focus", () => {
-
-    setTimeout(() => {
-
-        smoothScrollBottom();
-
-    }, 250);
-
-});
-
-// ------------------------------------------------------
-// Clipboard Helper
-// ------------------------------------------------------
-
-async function copyText(text) {
-
-    try {
-
-        await navigator.clipboard.writeText(text);
-
-        showToast("Copied");
-
-    }
-
-    catch {
-
-        showToast("Unable to copy");
-
-    }
-
-}
-
-// ------------------------------------------------------
-// Double Click Copy Message
-// ------------------------------------------------------
-
-messages.addEventListener("dblclick", event => {
-
-    const bubble = event.target.closest(
-
-        ".bot-message, .user-message"
-
-    );
-
-    if (!bubble) return;
-
-    copyText(
-
-        bubble.dataset.raw ||
-
-        bubble.innerText
-
-    );
-
-});
-
-// ------------------------------------------------------
-// Future Streaming Hook
-// ------------------------------------------------------
-
-function appendStreamingChunk(
-
-    container,
-
-    chunk
-
-) {
-
-    container.innerHTML += chunk;
-
-    highlightCode(container);
-
-    smoothScrollBottom();
-
-}
-
-/* =====================================================
-   WAIT THINKING
-===================================================== */
-
-async function waitThinking() {
-
-    if (ENABLE_THINKING_DELAY <= 0) {
-
-        return;
-
-    }
-
-    await sleep(ENABLE_THINKING_DELAY);
-
-}

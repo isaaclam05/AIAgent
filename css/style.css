@@ -6658,3 +6658,43 @@ a{
     }
 
 }
+
+/* ==========================================
+   TYPING CURSOR
+========================================== */
+
+.typing-cursor{
+
+    display:inline-block;
+
+    margin-left:3px;
+
+    color:var(--primary);
+
+    font-weight:bold;
+
+    animation:blinkCursor .8s infinite;
+
+}
+
+@keyframes blinkCursor{
+
+    0%{
+
+        opacity:1;
+
+    }
+
+    50%{
+
+        opacity:0;
+
+    }
+
+    100%{
+
+        opacity:1;
+
+    }
+
+}
