@@ -1388,6 +1388,81 @@ if (micButton) {
 }
 
 // ======================================================
+// SECTION 6.5
+// TEXT TO SPEECH
+// ======================================================
+
+function markdownToSpeech(markdown = "") {
+
+    return markdownToPlainText(markdown);
+
+}
+
+function stopSpeaking() {
+
+    window.speechSynthesis.cancel();
+
+    state.currentSpeech = null;
+
+    aiReady();
+
+}
+
+function speak(text = "") {
+
+    if (!FEATURES.textToSpeech) {
+        return;
+    }
+
+    if (!("speechSynthesis" in window)) {
+
+        showToast("Text-to-Speech is not supported.");
+
+        return;
+
+    }
+
+    stopSpeaking();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    utterance.lang = SPEECH.language;
+
+    utterance.rate = SPEECH.rate;
+
+    utterance.pitch = SPEECH.pitch;
+
+    utterance.volume = SPEECH.volume;
+
+    utterance.onstart = () => {
+
+        state.currentSpeech = utterance;
+
+        aiSpeaking();
+
+    };
+
+    utterance.onend = () => {
+
+        state.currentSpeech = null;
+
+        aiReady();
+
+    };
+
+    utterance.onerror = () => {
+
+        state.currentSpeech = null;
+
+        aiError();
+
+    };
+
+    speechSynthesis.speak(utterance);
+
+}
+
+// ======================================================
 // SECTION 7
 // THEME MANAGER
 // ======================================================
@@ -1657,7 +1732,7 @@ function addBotMessage(markdown) {
 
     appendTimestamp(div);
 
-    setupMessageActions(div, markdown);
+    attachMessageActions(div, markdown);
 
     animateMessage(div);
 
@@ -1909,6 +1984,8 @@ async function askAI(prompt) {
         const response = await fetch(WEBHOOK_URL, {
 
             method: "POST",
+
+            signal: abortController.signal,
 
             headers: {
                 "Content-Type": "application/json"
