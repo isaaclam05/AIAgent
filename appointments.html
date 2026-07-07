@@ -10,7 +10,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Remi+ AI Agent</title>
+    <title>Remi+ | Appointment Booking</title>
 
     <!-- Main CSS -->
     <link
@@ -35,12 +35,6 @@
         rel="stylesheet"
     >
 
-    <!-- Highlight.js Theme -->
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css"
-    >
-
 </head>
 
 <body>
@@ -54,349 +48,391 @@
     <!-- ================= NAVBAR ================= -->
 
     <header class="navbar">
-        
+
         <div class="container">
-            
-            <a href="index.html#home" class="logo">
-                
+
+            <a
+                href="index.html"
+                class="logo"
+            >
+
                 <div class="logo-circle">
-                    
-                    <img src="images/logo.jpg" alt="Remi+ Logo">
-                
+
+                    <img
+                        src="images/logo.jpg"
+                        alt="Remi+ Logo"
+                    >
+
                 </div>
-                
+
                 <span>Remi+</span>
-            
+
             </a>
-            
+
             <nav class="nav-links">
-                
-                <a href="index.html#home">Home</a>
-                
+
+                <a href="index.html">Home</a>
+
                 <a href="index.html#chat">AI Chat</a>
-                
+
                 <a href="medication.html">Medications</a>
-                
-                <a href="appointment.html">Appointments</a>
-                
+
+                <a
+                    href="appointment.html"
+                    class="active"
+                >
+                    Appointments
+                </a>
+
                 <a href="contact.html">Contact</a>
-            
+
             </nav>
-            
+
             <div class="nav-right">
-                
-                <button id="themeToggle" class="theme-toggle">
+
+                <button
+                    id="themeToggle"
+                    class="theme-toggle"
+                >
                     🌙
                 </button>
-                
+
                 <button class="login-btn">
+
                     Login
+
                 </button>
-            
+
             </div>
-        
+
         </div>
-    
+
     </header>
 
-    <!-- ================= HERO ================= -->
+    <!-- =====================================================
+    APPOINTMENT SECTION
+    ===================================================== -->
 
-    <section id="home" class="hero">
+<section class="appointment-section">
 
-        <div class="container hero-grid">
+    <div class="container">
 
-            <div class="hero-left">
+        <div class="section-title">
 
-                <span class="badge">
+            <span>
+                APPOINTMENT
+            </span>
 
-                    Powered by GPT-5.5 • n8n • OpenRouter
+            <h2>
 
-                </span>
+                Book an Appointment
 
-                <h1>
+            </h2>
 
-                    Meet the Future of Intelligent AI Assistance.
+            <p>
 
-                </h1>
+                Schedule a visit for your loved one quickly and securely.
 
-                <p>
+            </p>
 
-                    Remi+ AI Agent is an intelligent AI assistant capable of
-                    answering questions, analysing information,
-                    automating workflows, integrating with databases,
-                    and helping users make smarter decisions.
+        </div>
 
-                </p>
+        <div class="appointment-card">
 
-                <div class="hero-buttons">
+            <!-- Success / Error Notification -->
 
-                    <a href="#chat">
+            <div
+                id="notification"
+                class="notification"
+            ></div>
 
-                        <button class="primary-btn">
+            <!-- Appointment Form -->
 
-                            Start Chat
+            <form id="appointmentForm">
+
+                <div class="appointment-grid">
+
+                    <!-- Caretaker Name -->
+
+                    <div class="form-group">
+
+                        <label for="caretakerName">
+
+                            Caretaker Name
+
+                        </label>
+
+                        <input
+                            type="text"
+                            id="caretakerName"
+                            name="Caretaker Name"
+                            placeholder="Enter caretaker's name"
+                            required
+                        >
+
+                    </div>
+
+                    <!-- Client Name -->
+
+                    <div class="form-group">
+
+                        <label for="clientName">
+
+                            Elderly Name
+
+                        </label>
+
+                        <input
+                            type="text"
+                            id="clientName"
+                            name="Client Name"
+                            placeholder="Enter elderly's name"
+                            required
+                        >
+
+                    </div>
+
+                    <!-- Email -->
+
+                    <div class="form-group">
+
+                        <label for="email">
+
+                            Caretaker Email
+
+                        </label>
+
+                        <input
+                            type="email"
+                            id="email"
+                            name="Caretaker Email"
+                            placeholder="example@email.com"
+                            required
+                        >
+
+                    </div>
+
+                    <!-- Location -->
+
+                    <div class="form-group">
+
+                        <label for="location">
+
+                            Appointment Location
+
+                        </label>
+
+                        <input
+                            type="text"
+                            id="location"
+                            name="Location"
+                            placeholder="Hospital / Home Address"
+                            required
+                        >
+
+                    </div>
+
+                    <!-- Date -->
+
+                    <div class="form-group">
+
+                        <label for="date">
+
+                            Appointment Date
+
+                        </label>
+
+                        <input
+                            type="date"
+                            id="date"
+                            name="Date"
+                            required
+                        >
+
+                    </div>
+
+                    <!-- Time -->
+
+                    <div class="form-group">
+
+                        <label for="time">
+
+                            Appointment Time
+
+                        </label>
+
+                        <input
+                            type="time"
+                            id="time"
+                            name="Time"
+                            required
+                        >
+
+                    </div>
+
+                    <!-- Remarks -->
+
+                    <div class="form-group full-width">
+
+                        <label for="remarks">
+
+                            Remarks
+
+                        </label>
+
+                        <textarea
+                            id="remarks"
+                            name="Remarks"
+                            rows="5"
+                            placeholder="Additional notes or special requirements..."
+                        ></textarea>
+
+                    </div>
+
+                    <!-- Submit -->
+
+                    <div class="form-group full-width">
+
+                        <button
+                            type="submit"
+                            id="submitBtn"
+                            class="primary-btn appointment-btn"
+                        >
+
+                            Submit Appointment
 
                         </button>
 
-                    </a>
-
-                    <button class="secondary-btn">
-
-                        Learn More
-
-                    </button>
-
-                </div>
-
-            </div>
-
-            <div class="hero-right">
-
-                <div class="hero-card">
-
-                    <div class="hero-card-header">
-
-                        <div class="online-dot"></div>
-
-                        Remi+ Agent Online
-
-                    </div>
-
-                    <div class="hero-message bot">
-
-                        👋 Welcome back!
-
-                    </div>
-
-                    <div class="hero-message user">
-
-                        Analyse my monthly spending.
-
-                    </div>
-
-                    <div class="hero-message bot">
-
-                        Based on your recent transactions,
-                        I've identified three opportunities to save
-                        approximately $285 every month.
-
                     </div>
 
                 </div>
 
-            </div>
+            </form>
 
         </div>
 
-    </section>
-
-    <!-- ================= CHAT ================= -->
-
-    <section id="chat" class="chat-section">
-
-        <div class="container">
-
-            <div class="section-title">
-
-                <span>
-
-                    AI CHAT
-
-                </span>
-
-                <h2>
-
-                    Talk With Remi+ AI Agent
-
-                </h2>
-
-                <p>
-
-                    Experience natural conversations powered by GPT and n8n.
-
-                </p>
-
-            </div>
-
-            <div class="chat-container">
-
-                <div class="chat-header">
-
-                    <div class="chat-user">
-
-                        <div class="chat-avatar">
-
-                            🤖
-
-                        </div>
-
-                        <div>
-
-                            <h3>
-
-                                Remi+ AI Agent
-
-                            </h3>
-
-                            <span>
-
-                                ● Online
-
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                    <button id="clearChat">
-
-                        Clear Chat
-
-                    </button>
-
-                </div>
-
-                <div
-    id="messages"
-    class="chat-messages"
->
-
-    <!-- Welcome -->
-
-    <div class="bot-message markdown-body">
-
-        <h3>👋 Welcome to <strong>Remi+</strong></h3>
-
-        <p>
-            I'm your intelligent AI assistant.
-        </p>
-
-        <p>
-            I can help with:
-        </p>
-
-        <ul>
-
-            <li>💬 General Questions</li>
-
-            <li>📊 Data Analysis</li>
-
-            <li>💻 Programming</li>
-
-            <li>🌍 Translation</li>
-
-            <li>📝 Writing</li>
-
-            <li>📚 Research</li>
-
-        </ul>
-
-        <hr>
-
-        <p>
-
-            Click the <strong>🎤 microphone</strong> or start typing below.
-
-        </p>
-
     </div>
 
-</div>
+</section>
 
-<div class="chat-input">
+<script>
 
-    <div class="input-wrapper">
+// ======================================================
+// Remi+ Appointment Booking
+// ======================================================
 
-        <!-- Voice -->
+document.addEventListener("DOMContentLoaded", () => {
 
-        <button
-            id="micButton"
-            class="icon-button"
-            title="Voice Input"
-        >
-            🎤
-        </button>
+    const appointmentForm = document.getElementById("appointmentForm");
 
-        <!-- Text -->
+    if (!appointmentForm) return;
 
-        <textarea
-            id="userInput"
-            rows="1"
-            placeholder="Message Remi+..."
-            autocomplete="off"
-            spellcheck="true"
-        ></textarea>
+    const submitBtn = document.getElementById("submitBtn");
+    const notification = document.getElementById("notification");
 
-        <!-- Send -->
+    // ==============================
+    // Submit Appointment
+    // ==============================
 
-        <button
-            id="sendButton"
-            class="icon-button send-button"
-            title="Send"
-        >
-            ➜
-        </button>
+    appointmentForm.addEventListener("submit", async (event) => {
 
-    </div>
+        event.preventDefault();
 
-    <div
-        id="voiceStatus"
-        class="voice-status"
-    >
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "⏳ Processing...";
 
-        🎤 Click the microphone to start speaking
+        notification.style.display = "none";
 
-    </div>
+        // ==============================
+        // Your n8n Webhook
+        // ==============================
 
-</div>
+        const webhookUrl =
+            "https://n8ngc.codeblazar.org/webhook/appointment-form";
 
-            </div>
+        // ==============================
+        // Collect Form Data
+        // ==============================
 
-        </div>
+        const formData = new FormData(appointmentForm);
 
-    </section>
+        // Google Sheet Columns
 
-    <!-- ==========================================
-    JAVASCRIPT LIBRARIES
-    =========================================== -->
+        formData.append("Status", "Pending");
 
-    <!-- Markdown Parser -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+        formData.append(
+            "Appointment Time",
+            formData.get("Time")
+        );
 
-    <!-- HTML Sanitizer -->
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+        try {
 
-    <!-- Highlight.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+            const response = await fetch(webhookUrl, {
 
-    <!-- Chat Logic -->
-    <script src="js/chat.js"></script>
-<nav class="mobile-navbar">
+                method: "POST",
+                body: formData
 
-    <a href="index.html">
-        <div>🏠</div>
-        <span>Home</span>
-    </a>
+            });
 
-    <a href="medication.html">
-        <div>💊</div>
-        <span>Medication</span>
-    </a>
+            if (!response.ok) {
 
-    <a href="index.html#chat" class="mobile-chat-btn">
-        🎤
-    </a>
+                throw new Error("Server Error");
 
-    <a href="appointment.html">
-        <div>📅</div>
-        <span>Schedule</span>
-    </a>
+            }
 
-    <a href="contact.html">
-        <div>👤</div>
-        <span>Account</span>
-    </a>
+            // ==============================
+            // Success
+            // ==============================
 
-</nav>
+            notification.className =
+                "notification success";
+
+            notification.style.display = "block";
+
+            notification.innerHTML = `
+                ✅ Appointment booked successfully!
+                <br>
+                Redirecting to dashboard...
+            `;
+
+            appointmentForm.reset();
+
+            setTimeout(() => {
+
+                window.location.href = "dashboard.html";
+
+            }, 1500);
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            notification.className =
+                "notification error";
+
+            notification.style.display = "block";
+
+            notification.innerHTML = `
+                ❌ Unable to submit appointment.
+                <br>
+                Please try again.
+            `;
+
+            submitBtn.disabled = false;
+
+            submitBtn.innerHTML =
+                "Submit Appointment";
+
+        }
+
+    });
+
+});
+
+</script>
+<script src="js/chat.js"></script>
+
 </body>
 </html>
