@@ -6931,3 +6931,199 @@ a{
     }
 
 }
+
+/* ======================================================
+   APPOINTMENT PAGE
+====================================================== */
+
+.appointment-section {
+    padding: 140px 0 80px;
+}
+
+.appointment-card {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 40px;
+    border-radius: 25px;
+    background: rgba(255,255,255,0.65);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.4);
+    box-shadow: 0 20px 60px rgba(0,0,0,.08);
+}
+
+.appointment-grid {
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    gap: 25px;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-color, #333);
+}
+
+.form-group input,
+.form-group textarea {
+
+    width: 100%;
+
+    padding: 14px 18px;
+
+    border-radius: 14px;
+
+    border: 1px solid rgba(0,0,0,.08);
+
+    background: rgba(255,255,255,.85);
+
+    font-family: inherit;
+
+    font-size: 15px;
+
+    transition: .25s;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+
+    outline: none;
+
+    border-color: #7B68EE;
+
+    box-shadow: 0 0 0 4px rgba(123,104,238,.15);
+
+}
+
+.appointment-btn {
+
+    width: 100%;
+
+    margin-top: 10px;
+
+    font-size: 16px;
+
+    padding: 15px;
+
+}
+
+/* ==========================================
+   Notification
+========================================== */
+
+.notification {
+
+    display: none;
+
+    margin-bottom: 25px;
+
+    padding: 18px;
+
+    border-radius: 15px;
+
+    font-weight: 600;
+
+    text-align: center;
+
+    animation: fadeIn .4s ease;
+
+}
+
+.notification.success {
+
+    background: #e9f9ef;
+
+    color: #15803d;
+
+    border: 1px solid #9be7b1;
+
+}
+
+.notification.error {
+
+    background: #fff1f1;
+
+    color: #dc2626;
+
+    border: 1px solid #ffb4b4;
+
+}
+
+/* ==========================================
+   Loading Button
+========================================== */
+
+button:disabled {
+
+    opacity: .7;
+
+    cursor: not-allowed;
+
+}
+
+/* ==========================================
+   Animation
+========================================== */
+
+@keyframes fadeIn {
+
+    from {
+
+        opacity: 0;
+
+        transform: translateY(-10px);
+
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform: translateY(0);
+
+    }
+
+}
+
+/* ==========================================
+   Mobile
+========================================== */
+
+@media (max-width:768px){
+
+    .appointment-card{
+
+        padding:25px;
+
+    }
+
+    .appointment-grid{
+
+        grid-template-columns:1fr;
+
+        gap:20px;
+
+    }
+
+    .appointment-section{
+
+        padding:110px 20px 120px;
+
+    }
+
+}
