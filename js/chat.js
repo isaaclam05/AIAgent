@@ -3444,3 +3444,118 @@ async function waitThinking() {
 
 }
 
+
+
+// ======================================================
+// Remi+ Appointment Booking (ETHAN)
+// ======================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+    
+    const appointmentForm = document.getElementById("appointmentForm");
+    
+    if (!appointmentForm) return;
+    
+    const submitBtn = document.getElementById("submitBtn");
+    const notification = document.getElementById("notification");
+    
+    // ==============================
+    // Submit Appointment
+    // ==============================
+
+    appointmentForm.addEventListener("submit", async (event) => {
+
+        event.preventDefault();
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "⏳ Processing...";
+
+        notification.style.display = "none";
+
+        // ==============================
+        // Your n8n Webhook
+        // ==============================
+
+        const webhookUrl =
+            "https://n8ngc.codeblazar.org/webhook/appointment-form";
+
+        // ==============================
+        // Collect Form Data
+        // ==============================
+
+        const formData = new FormData(appointmentForm);
+
+        // Google Sheet Columns
+
+        formData.append("Status", "Pending");
+
+        formData.append(
+            "Appointment Time",
+            formData.get("Time")
+        );
+
+        try {
+
+            const response = await fetch(webhookUrl, {
+
+                method: "POST",
+                body: formData
+
+            });
+
+            if (!response.ok) {
+
+                throw new Error("Server Error");
+
+            }
+
+            // ==============================
+            // Success
+            // ==============================
+
+            notification.className =
+                "notification success";
+
+            notification.style.display = "block";
+
+            notification.innerHTML = `
+                ✅ Appointment booked successfully!
+                <br>
+                Redirecting to dashboard...
+            `;
+
+            appointmentForm.reset();
+
+            setTimeout(() => {
+
+                window.location.href = "dashboard.html";
+
+            }, 1500);
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            notification.className =
+                "notification error";
+
+            notification.style.display = "block";
+
+            notification.innerHTML = `
+                ❌ Unable to submit appointment.
+                <br>
+                Please try again.
+            `;
+
+            submitBtn.disabled = false;
+
+            submitBtn.innerHTML =
+                "Submit Appointment";
+
+        }
+
+    });
+
+});
