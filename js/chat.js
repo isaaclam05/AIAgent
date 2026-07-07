@@ -3446,46 +3446,203 @@ async function waitThinking() {
 
 
 
+
 // ======================================================
-// Remi+ Appointment Booking (ETHAN)
+// Remi+ Appointment Booking
+// Version 2.0
 // ======================================================
 
 document.addEventListener("DOMContentLoaded", () => {
-    
+
     const appointmentForm = document.getElementById("appointmentForm");
-    
+
     if (!appointmentForm) return;
-    
+
     const submitBtn = document.getElementById("submitBtn");
     const notification = document.getElementById("notification");
-    
-    // ==============================
+
+    const caretakerName = document.getElementById("caretakerName");
+    const clientName = document.getElementById("clientName");
+    const email = document.getElementById("email");
+    const location = document.getElementById("location");
+    const date = document.getElementById("date");
+    const time = document.getElementById("time");
+
+    let isSubmitting = false;
+
+    // ======================================================
+    // Prevent choosing dates before today
+    // ======================================================
+
+    const today = new Date();
+
+    const minDate =
+        today.getFullYear() + "-" +
+        String(today.getMonth() + 1).padStart(2, "0") + "-" +
+        String(today.getDate()).padStart(2, "0");
+
+    if (date) {
+        date.min = minDate;
+    }
+
+    // ======================================================
+    // Notification Helper
+    // ======================================================
+
+    function showNotification(message, type) {
+
+        notification.className = "notification " + type;
+
+        notification.innerHTML = message;
+
+        notification.style.display = "block";
+
+        notification.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+
+    }
+
+    // ======================================================
+    // Validate Email
+    // ======================================================
+
+    function validEmail(emailAddress) {
+
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddress);
+
+    }
+
+    // ======================================================
     // Submit Appointment
-    // ==============================
+    // ======================================================
 
     appointmentForm.addEventListener("submit", async (event) => {
 
         event.preventDefault();
 
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = "⏳ Processing...";
+        if (isSubmitting) return;
 
         notification.style.display = "none";
 
-        // ==============================
-        // Your n8n Webhook
-        // ==============================
+        // ======================================================
+        // Trim Input Values
+        // ======================================================
+
+        caretakerName.value = caretakerName.value.trim();
+        clientName.value = clientName.value.trim();
+        email.value = email.value.trim();
+        location.value = location.value.trim();
+
+        // ======================================================
+        // Required Validation
+        // ======================================================
+
+        if (
+            !caretakerName.value ||
+            !clientName.value ||
+            !email.value ||
+            !location.value ||
+            !date.value ||
+            !time.value
+        ) {
+
+            showNotification(
+                "⚠️ Please complete all required fields.",
+                "error"
+            );
+
+            return;
+
+        }
+
+        // ======================================================
+        // Email Validation
+        // ======================================================
+
+        if (!validEmail(email.value)) {
+
+            showNotification(
+                "⚠️ Please enter a valid email address.",
+                "error"
+            );
+
+            email.focus();
+
+            return;
+
+        }
+
+        // ======================================================
+        // Prevent Past Time Today
+        // ======================================================
+
+        const now = new Date();
+
+        const selectedDate = date.value;
+
+        const todayString =
+            now.getFullYear() + "-" +
+            String(now.getMonth() + 1).padStart(2, "0") + "-" +
+            String(now.getDate()).padStart(2, "0");
+
+        if (selectedDate === todayString) {
+
+            const currentTime =
+                String(now.getHours()).padStart(2, "0") +
+                ":" +
+                String(now.getMinutes()).padStart(2, "0");
+
+            if (time.value < currentTime) {
+
+                showNotification(
+                    "⚠️ Please select a future appointment time.",
+                    "error"
+                );
+
+                time.focus();
+
+                return;
+
+            }
+
+        }
+
+        // ======================================================
+        // Confirmation
+        // ======================================================
+
+        const confirmed = confirm(
+            "Are you sure you want to book this appointment?"
+        );
+
+        if (!confirmed) {
+
+            return;
+
+        }
+
+        // ======================================================
+        // Prevent Double Submit
+        // ======================================================
+
+        isSubmitting = true;
+
+        submitBtn.disabled = true;
+
+        submitBtn.innerHTML = "⏳ Processing...";
+
+        // ======================================================
+        // n8n Webhook
+        // ======================================================
 
         const webhookUrl =
             "https://n8ngc.codeblazar.org/webhook/appointment-form";
 
-        // ==============================
-        // Collect Form Data
-        // ==============================
-
         const formData = new FormData(appointmentForm);
 
-        // Google Sheet Columns
+        // Google Sheets Columns
 
         formData.append("Status", "Pending");
 
@@ -3499,6 +3656,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const response = await fetch(webhookUrl, {
 
                 method: "POST",
+
                 body: formData
 
             });
@@ -3509,20 +3667,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
             }
 
-            // ==============================
-            // Success
-            // ==============================
+            showNotification(
 
-            notification.className =
-                "notification success";
+                "✅ Appointment booked successfully!<br>Redirecting to dashboard...",
 
-            notification.style.display = "block";
+                "success"
 
-            notification.innerHTML = `
-                ✅ Appointment booked successfully!
-                <br>
-                Redirecting to dashboard...
-            `;
+            );
 
             appointmentForm.reset();
 
@@ -3538,24 +3689,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
             console.error(error);
 
-            notification.className =
-                "notification error";
+            showNotification(
 
-            notification.style.display = "block";
+                "❌ Unable to submit appointment.<br>Please try again.",
 
-            notification.innerHTML = `
-                ❌ Unable to submit appointment.
-                <br>
-                Please try again.
-            `;
+                "error"
+
+            );
 
             submitBtn.disabled = false;
 
-            submitBtn.innerHTML =
-                "Submit Appointment";
+            submitBtn.innerHTML = "Submit Appointment";
+
+            isSubmitting = false;
 
         }
 
     });
 
 });
+

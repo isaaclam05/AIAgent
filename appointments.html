@@ -1,42 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Remi+ | Appointment Booking</title>
-
-    <!-- Main CSS -->
-    <link
-        rel="stylesheet"
-        href="css/style.css"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remi+ | Dashboard</title>
     <!-- Google Font -->
-    <link
-        rel="preconnect"
-        href="https://fonts.googleapis.com"
-    >
+    <link rel="preconnect" href="https://fonts.googleapis.com">
 
-    <link
-        rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossorigin
-    >
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet"
-    >
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
+    <!-- Highlight.js Theme -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
+
+    <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
 
     <!-- Background -->
@@ -48,299 +27,254 @@
     <!-- ================= NAVBAR ================= -->
 
     <header class="navbar">
+        
+        <div class="container">
+            
+            <a href="index.html#home" class="logo">
+                
+                <div class="logo-circle">
+                    
+                    <img src="images/logo.jpg" alt="Remi+ Logo">
+                
+                </div>
+                
+                <span>Remi+</span>
+            
+            </a>
+            
+            <nav class="nav-links">
+                
+                <a href="index.html">Home</a>
+                
+                <a href="index.html#chat">AI Chat</a>
+                
+                <a href="medications.html">Medications</a>
+                
+                <a href="appointments.html">Appointments</a>
+                
+                <a href="contact.html">Contact</a>
+            
+            </nav>
+            
+            <div class="nav-right">
+                
+                <button id="themeToggle" class="theme-toggle">
+                    🌙
+                </button>
+                
+                <button class="login-btn">
+                    Login
+                </button>
+            
+            </div>
+        
+        </div>
+    
+    </header>
+
+    <section id="appointments" class="chat-section">
+
 
         <div class="container">
 
-            <a
-                href="index.html"
-                class="logo"
-            >
+    
+            <!-- Section Title -->
 
-                <div class="logo-circle">
+    
+            <div class="section-title">
 
-                    <img
-                        src="images/logo.jpg"
-                        alt="Remi+ Logo"
-                    >
+        
+                <span class="section-tag">
+            
+                    APPOINTMENTS
+        
+                </span>
 
-                </div>
+        
+                <h2>
+            
+                    Client Appointments
+        
+                </h2>
 
-                <span>Remi+</span>
+        
+                <p>
+            
+                    View, manage and organize your client appointments with ease.
+        
+                </p>
 
-            </a>
-
-            <nav class="nav-links">
-
-                <a href="index.html">Home</a>
-
-                <a href="index.html#chat">AI Chat</a>
-
-                <a href="medication.html">Medications</a>
-
-                <a
-                    href="appointment.html"
-                    class="active"
-                >
-                    Appointments
-                </a>
-
-                <a href="contact.html">Contact</a>
-
-            </nav>
-
-            <div class="nav-right">
-
-                <button
-                    id="themeToggle"
-                    class="theme-toggle"
-                >
-                    🌙
-                </button>
-
-                <button class="login-btn">
-
-                    Login
-
-                </button>
-
+    
             </div>
 
-        </div>
+    
+            <!-- Appointment Card -->
 
-    </header>
+    
+            <div class="appointment-card">
 
-    <!-- =====================================================
-    APPOINTMENT SECTION
-    ===================================================== -->
+    
+                <!-- Card Header -->
 
-<section class="appointment-section">
+    
+                <div class="appointment-header">
 
-    <div class="container">
+    
+                    <div>
 
-        <div class="section-title">
+    
+                        <h3>Appointment List</h3>
 
-            <span>
-                APPOINTMENT
-            </span>
-
-            <h2>
-
-                Book an Appointment
-
-            </h2>
-
-            <p>
-
-                Schedule a visit for your loved one quickly and securely.
-
-            </p>
-
-        </div>
-
-        <div class="appointment-card">
-
-            <!-- Success / Error Notification -->
-
-            <div
-                id="notification"
-                class="notification"
-            ></div>
-
-            <!-- Appointment Form -->
-
-            <form id="appointmentForm">
-
-                <div class="appointment-grid">
-
-                    <!-- Caretaker Name -->
-
-                    <div class="form-group">
-
-                        <label for="caretakerName">
-
-                            Caretaker Name
-
-                        </label>
-
-                        <input
-                            type="text"
-                            id="caretakerName"
-                            name="Caretaker Name"
-                            placeholder="Enter caretaker's name"
-                            required
-                        >
-
+    
+                        <p>
+                    
+                            All scheduled client appointments.
+                
+                        </p>
+            
                     </div>
-
-                    <!-- Client Name -->
-
-                    <div class="form-group">
-
-                        <label for="clientName">
-
-                            Elderly Name
-
-                        </label>
-
-                        <input
-                            type="text"
-                            id="clientName"
-                            name="Client Name"
-                            placeholder="Enter elderly's name"
-                            required
-                        >
-
+                    
+                    <div class="appointment-actions">
+                        
+                        <input type="text" id="searchInput" placeholder="Search ...">
+                        
+                        <a href="make-an-appointment.html" class="add-btn">+ Add Appointment</a>
+            
                     </div>
-
-                    <!-- Email -->
-
-                    <div class="form-group">
-
-                        <label for="email">
-
-                            Caretaker Email
-
-                        </label>
-
-                        <input
-                            type="email"
-                            id="email"
-                            name="Caretaker Email"
-                            placeholder="example@email.com"
-                            required
-                        >
-
-                    </div>
-
-                    <!-- Location -->
-
-                    <div class="form-group">
-
-                        <label for="location">
-
-                            Appointment Location
-
-                        </label>
-
-                        <input
-                            type="text"
-                            id="location"
-                            name="Location"
-                            placeholder="Hospital / Home Address"
-                            required
-                        >
-
-                    </div>
-
-                    <!-- Date -->
-
-                    <div class="form-group">
-
-                        <label for="date">
-
-                            Appointment Date
-
-                        </label>
-
-                        <input
-                            type="date"
-                            id="date"
-                            name="Date"
-                            required
-                        >
-
-                    </div>
-
-                    <!-- Time -->
-
-                    <div class="form-group">
-
-                        <label for="time">
-
-                            Appointment Time
-
-                        </label>
-
-                        <input
-                            type="time"
-                            id="time"
-                            name="Time"
-                            required
-                        >
-
-                    </div>
-
-                    <!-- Remarks -->
-
-                    <div class="form-group full-width">
-
-                        <label for="remarks">
-
-                            Remarks
-
-                        </label>
-
-                        <textarea
-                            id="remarks"
-                            name="Remarks"
-                            rows="5"
-                            placeholder="Additional notes or special requirements..."
-                        ></textarea>
-
-                    </div>
-
-                    <!-- Submit -->
-
-                    <div class="form-group full-width">
-
-                        <button
-                            type="submit"
-                            id="submitBtn"
-                            class="primary-btn appointment-btn"
-                        >
-
-                            Submit Appointment
-
-                        </button>
-
-                    </div>
-
+                
                 </div>
-
-            </form>
-
+                
+                <!-- Table -->
+                 
+                <div class="table-responsive">
+                    
+                    <table>
+                        
+                        <thead>
+                            
+                            <tr>
+                                
+                                <th>Appointment Date</th>
+                                
+                                <th>Appointment Time</th>
+                                
+                                <th>Client Name</th>
+                                
+                                <th>Location</th>
+                                
+                                <th>Status</th>
+                                
+                                <th>Remarks</th>
+                            
+                            </tr>
+                        
+                        </thead>
+                        
+                        <tbody id="tableBody">
+                            
+                            <tr>
+                                <td colspan="5" class="loading-cell">
+                                    
+                                    Loading appointments...
+                                
+                                </td>
+                            
+                            </tr>
+                        
+                        </tbody>
+                    
+                    </table>
+                
+                </div>
+            
+            </div>
+        
         </div>
+    
+    </section>
 
-    </div>
+<script>
+    // 1. PASTE YOUR N8N GET WEBHOOK URL HERE
+    const getWebhookUrl = 'https://n8ngc.codeblazar.org/webhook/dashboard';
 
-</section>
+    fetch(getWebhookUrl)
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = ''; 
 
-<script src="js/chat.js"></script>
-<nav class="mobile-navbar">
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                
+                // Using the exact structure you requested!
+                tr.innerHTML = `
+                    <td><strong>${row['Date'] || 'N/A'}</strong></td>
+                    <td><strong>${row['Time'] || 'N/A'}</strong></td>
+                    <td>${row['Client Name'] || 'N/A'}</td>
+                    <td>${row['Location'] || 'N/A'}</td>
+                    <td><span class="status-badge">${row['Status'] || 'Pending'}</span></td>
+                    <td>${row['Remarks'] || '-'}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" style="color:red; text-align:center;">Failed to load data. Make sure n8n is active.</td></tr>';
+        });
 
-    <a href="index.html">
-        <div>🏠</div>
-        <span>Home</span>
-    </a>
+        const searchInput = document.getElementById("searchInput");
 
-    <a href="medication.html">
-        <div>💊</div>
-        <span>Medication</span>
-    </a>
+searchInput.addEventListener("keyup", function () {
 
-    <a href="index.html#chat" class="mobile-chat-btn">
-        🎤
-    </a>
+    const filter = this.value.toLowerCase();
 
-    <a href="appointments.html">
-        <div>📅</div>
-        <span>Schedule</span>
-    </a>
+    const rows = document.querySelectorAll("#tableBody tr");
 
-    <a href="contact.html">
-        <div>👤</div>
-        <span>Account</span>
-    </a>
+    rows.forEach(row => {
 
+        // Gets ALL text inside the row
+        const text = row.textContent.toLowerCase();
+
+        if (text.includes(filter)) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
+
+    });
+
+});
+</script>
+    <!-- Chat Logic -->
+    <script src="js/chat.js"></script>
+    
+    <nav class="mobile-navbar">
+        
+        <a href="index.html">
+            <div>🏠</div>
+            <span>Home</span>
+        </a>
+        
+        <a href="medication.html">
+            <div>💊</div>
+            <span>Medication</span>
+        </a>
+        
+        <a href="index.html#chat" class="mobile-chat-btn">
+            🎤
+        </a>
+        
+        <a href="appointments.html">
+            <div>📅</div>
+            <span>Schedule</span>
+        </a>
+    
+        <a href="contact.html">
+            <div>👤</div>
+            <span>Account</span>
+        </a>
+
+</nav>
 </body>
 </html>
