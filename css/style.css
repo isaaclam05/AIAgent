@@ -8581,3 +8581,29 @@ width:100%;
     max-width:180px;
 
 }
+
+#appointments .container{
+
+    width:95%;
+
+    max-width:1550px;
+
+    margin:0 auto;
+
+}
+
+.appointment-card{
+
+    width:100%;
+
+    max-width:1500px;
+
+}
+
+.table-responsive table{
+
+    width:100%;
+
+    min-width:1350px;
+
+}
