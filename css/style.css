@@ -8549,3 +8549,35 @@ width:100%;
 }
 
 }
+
+.table-responsive td{
+
+    padding:22px 22px;
+
+    vertical-align:middle;
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+}
+
+.table-responsive th{
+
+    padding:18px 22px;
+
+}
+
+.table-responsive td:nth-child(4){
+
+    max-width:220px;
+
+}
+
+.table-responsive td:nth-child(6){
+
+    max-width:180px;
+
+}
