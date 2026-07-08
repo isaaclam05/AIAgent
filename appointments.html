@@ -384,32 +384,57 @@ const deleteWebhookUrl =
 
 
 // ======================================================
+// GLOBAL ARRAYS
+// ======================================================
+
+let appointments = [];
+
+
+// ======================================================
 // DATE HELPERS
 // ======================================================
 
-function parseAppointment(date,time){
+function getAppointmentDate(row){
 
-    if(!date) return null;
+    const date =
+        row["Appointment Date"] ||
+        row["Date"];
 
-    return new Date(`${date}T${time || "00:00"}`);
+    const time =
+        row["Time"] || "00:00";
+
+    return new Date(`${date}T${time}`);
 
 }
 
-function isToday(date){
+function isPastAppointment(row){
 
-    const today=new Date();
+    return getAppointmentDate(row) < new Date();
+
+}
+
+function isToday(row){
+
+    const d = getAppointmentDate(row);
+
+    const today = new Date();
 
     return (
 
-        date.getFullYear()===today.getFullYear() &&
+        d.getFullYear() === today.getFullYear() &&
 
-        date.getMonth()===today.getMonth() &&
+        d.getMonth() === today.getMonth() &&
 
-        date.getDate()===today.getDate()
+        d.getDate() === today.getDate()
 
     );
 
 }
+
+
+// ======================================================
+// STATUS BADGE
+// ======================================================
 
 function getStatusClass(status){
 
@@ -431,7 +456,7 @@ function getStatusClass(status){
 
 }
 
-function statusHTML(status){
+function getStatusBadge(status){
 
     return `
 
@@ -449,119 +474,196 @@ function statusHTML(status){
 // LOAD APPOINTMENTS
 // ======================================================
 
-function loadAppointments(){
-    
-    fetch(getWebhookUrl)
-    
-    .then(response=>response.json())
-    
-    .then(data=>{
-        
-        const upcomingTable=document.getElementById("upcomingTableBody");
-        
-        const pastTable=document.getElementById("pastTableBody");
-        
-        upcomingTable.innerHTML="";
-        
-        pastTable.innerHTML="";
-        
-        let upcomingCount=0;
-        
-        let todayCount=0;
-        
-        let completedCount=0;
-        
-        let pastCount=0;
-        
-        const now=new Date();
-        
-        const upcoming=[];
-        
-        const past=[];
+async function loadAppointments(){
 
-        // ======================================================
-// PROCESS EACH APPOINTMENT
+    try{
+
+        const response = await fetch(getWebhookUrl);
+
+        appointments = await response.json();
+
+        const upcomingTable =
+            document.getElementById("upcomingTableBody");
+
+        const pastTable =
+            document.getElementById("pastTableBody");
+
+        upcomingTable.innerHTML = "";
+
+        pastTable.innerHTML = "";
+
+        let upcomingCount = 0;
+        let todayCount = 0;
+        let completedCount = 0;
+        let pastCount = 0;
+
+        const upcomingAppointments = [];
+        const pastAppointments = [];
+
+        appointments.forEach(row=>{
+
+            if(isPastAppointment(row))
+                pastAppointments.push(row);
+            else
+                upcomingAppointments.push(row);
+
+            if(isToday(row))
+                todayCount++;
+
+            if(isPastAppointment(row))
+                pastCount++;
+            else
+                upcomingCount++;
+
+            if((row["Status"] || "").toLowerCase()=="completed")
+                completedCount++;
+
+        });
+
+        // Sort Upcoming (Nearest First)
+
+        upcomingAppointments.sort((a,b)=>{
+
+            return getAppointmentDate(a) - getAppointmentDate(b);
+
+        });
+
+        // Sort Past (Latest First)
+
+        pastAppointments.sort((a,b)=>{
+
+            return getAppointmentDate(b) - getAppointmentDate(a);
+
+        });
+
+        // Render Upcoming
+
+        upcomingAppointments.forEach(row=>{
+
+            upcomingTable.appendChild(createAppointmentRow(row));
+
+            upcomingTable.appendChild(createEditRow(row));
+
+        });
+
+        // Render Past
+
+        pastAppointments.forEach(row=>{
+
+            pastTable.appendChild(createAppointmentRow(row));
+
+            pastTable.appendChild(createEditRow(row));
+
+        });
+
+        if(upcomingAppointments.length===0){
+
+            upcomingTable.innerHTML=`
+
+                <tr>
+
+                    <td colspan="7" class="loading-cell">
+
+                        No upcoming appointments.
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        }
+
+        if(pastAppointments.length===0){
+
+            pastTable.innerHTML=`
+
+                <tr>
+
+                    <td colspan="7" class="loading-cell">
+
+                        No past appointments.
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        }
+
+        document.getElementById("upcomingCount").innerHTML=
+        upcomingCount;
+
+        document.getElementById("todayCount").innerHTML=
+        todayCount;
+
+        document.getElementById("completedCount").innerHTML=
+        completedCount;
+
+        document.getElementById("pastCount").innerHTML=
+        pastCount;
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        document.getElementById("upcomingTableBody").innerHTML=`
+
+            <tr>
+
+                <td colspan="7" class="loading-cell">
+
+                    Failed to load appointments.
+
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+
+}
+
+// ======================================================
+// CREATE APPOINTMENT ROW
 // ======================================================
 
-data.forEach(row=>{
+function createAppointmentRow(row){
 
-    const id=row.row_number;
+    const id = row.row_number;
 
-    const appointmentDate=parseAppointment(
+    const tr = document.createElement("tr");
 
-        row["Appointment Date"] || row["Date"],
+    tr.id = `main-row-${id}`;
 
-        row["Time"]
-
-    );
-
-    const isPastAppointment=
-
-        appointmentDate &&
-        appointmentDate < now;
-
-    if(appointmentDate){
-
-        if(isToday(appointmentDate))
-            todayCount++;
-
-        if(isPastAppointment)
-            pastCount++;
-        else
-            upcomingCount++;
-
-    }
-
-    if(
-
-        (row["Status"] || "").toLowerCase()==="completed"
-
-    ){
-
-        completedCount++;
-
-    }
-
-    const mainRow=document.createElement("tr");
-
-    mainRow.id=`main-row-${id}`;
-
-    mainRow.innerHTML=`
+    tr.innerHTML = `
 
         <td id="display-date-${id}">
-
             <strong>${row["Appointment Date"] || row["Date"] || "-"}</strong>
-
         </td>
 
         <td id="display-time-${id}">
-
             <strong>${row["Time"] || "-"}</strong>
-
         </td>
 
         <td>
-
             ${row["Client Name"] || "-"}
-
         </td>
 
         <td id="display-location-${id}">
-
             ${row["Location"] || "-"}
-
         </td>
 
         <td id="display-status-${id}">
-
-            ${statusHTML(row["Status"])}
-
+            ${getStatusBadge(row["Status"])}
         </td>
 
         <td id="display-remarks-${id}">
-
             ${row["Remarks"] || "-"}
-
         </td>
 
         <td>
@@ -586,13 +688,29 @@ data.forEach(row=>{
 
     `;
 
-    const editRow=document.createElement("tr");
+    return tr;
 
-    editRow.id=`edit-form-${id}`;
+}
 
-    editRow.className="edit-row";
 
-    editRow.innerHTML=`
+
+// ======================================================
+// CREATE EDIT ROW
+// ======================================================
+
+function createEditRow(row){
+
+    const id = row.row_number;
+
+    const tr = document.createElement("tr");
+
+    tr.id = `edit-form-${id}`;
+
+    tr.className = "edit-row";
+
+    tr.style.display = "none";
+
+    tr.innerHTML = `
 
         <td colspan="7">
 
@@ -604,9 +722,7 @@ data.forEach(row=>{
 
                 </h4>
 
-                <form
-
-                    onsubmit="submitUpdate(event,${id})">
+                <form onsubmit="submitUpdate(event,${id})">
 
                     <div class="edit-grid">
 
@@ -615,16 +731,10 @@ data.forEach(row=>{
                             <label>Date</label>
 
                             <input
-
                                 type="date"
-
                                 id="edit-date-${id}"
-
                                 value="${row["Appointment Date"] || row["Date"] || ""}"
-
-                                required
-
-                            >
+                                required>
 
                         </div>
 
@@ -633,16 +743,10 @@ data.forEach(row=>{
                             <label>Time</label>
 
                             <input
-
                                 type="time"
-
                                 id="edit-time-${id}"
-
                                 value="${row["Time"] || ""}"
-
-                                required
-
-                            >
+                                required>
 
                         </div>
 
@@ -651,16 +755,10 @@ data.forEach(row=>{
                             <label>Location</label>
 
                             <input
-
                                 type="text"
-
                                 id="edit-location-${id}"
-
                                 value="${row["Location"] || ""}"
-
-                                required
-
-                            >
+                                required>
 
                         </div>
 
@@ -668,65 +766,44 @@ data.forEach(row=>{
 
                             <label>Status</label>
 
-                            <select
-
-                                id="edit-status-${id}">
+                            <select id="edit-status-${id}">
 
                                 <option value="Pending"
-
-                                    ${(row["Status"]==="Pending")?"selected":""}>
-
+                                    ${row["Status"]==="Pending"?"selected":""}>
                                     Pending
-
                                 </option>
 
                                 <option value="Confirmed"
-
-                                    ${(row["Status"]==="Confirmed")?"selected":""}>
-
+                                    ${row["Status"]==="Confirmed"?"selected":""}>
                                     Confirmed
-
                                 </option>
 
                                 <option value="Completed"
-
-                                    ${(row["Status"]==="Completed")?"selected":""}>
-
+                                    ${row["Status"]==="Completed"?"selected":""}>
                                     Completed
-
                                 </option>
 
                             </select>
 
                         </div>
 
-                        <div style="grid-column:1/-1">
+                        <div style="grid-column:1/-1;">
 
-                            <label>
-
-                                Remarks
-
-                            </label>
+                            <label>Remarks</label>
 
                             <input
-
                                 type="text"
-
                                 id="edit-remarks-${id}"
-
-                                value="${row["Remarks"] || ""}"
-
-                            >
+                                value="${row["Remarks"] || ""}">
 
                         </div>
 
                     </div>
 
                     <button
-
-                        class="save-btn"
-
-                        id="btn-save-${id}">
+                        type="submit"
+                        id="btn-save-${id}"
+                        class="save-btn">
 
                         Save Changes
 
@@ -740,178 +817,279 @@ data.forEach(row=>{
 
     `;
 
-    if(isPastAppointment){
+    return tr;
 
-        past.push({
+}
 
-            date:appointmentDate,
+// ======================================================
+// TOGGLE EDIT FORM
+// ======================================================
 
-            mainRow,
+function toggleEditForm(id){
 
-            editRow
+    const form = document.getElementById(`edit-form-${id}`);
 
-        });
+    if(!form) return;
+
+    if(form.style.display === "table-row"){
+
+        form.style.display = "none";
 
     }else{
 
-        upcoming.push({
+        document.querySelectorAll(".edit-row").forEach(row=>{
 
-            date:appointmentDate,
-
-            mainRow,
-
-            editRow
+            row.style.display = "none";
 
         });
 
+        form.style.display = "table-row";
+
     }
 
-});
+}
 
-// ======================================================
-// SORT APPOINTMENTS
-// ======================================================
-
-upcoming.sort((a,b)=>{
-
-    if(!a.date && !b.date) return 0;
-
-    if(!a.date) return 1;
-
-    if(!b.date) return -1;
-
-    return a.date-b.date;
-
-});
-
-past.sort((a,b)=>{
-
-    if(!a.date && !b.date) return 0;
-
-    if(!a.date) return 1;
-
-    if(!b.date) return -1;
-
-    return b.date-a.date;
-
-});
 
 
 // ======================================================
-// RENDER UPCOMING TABLE
+// UPDATE APPOINTMENT
 // ======================================================
 
-if(upcoming.length===0){
+async function submitUpdate(event,id){
 
-    upcomingTable.innerHTML=`
+    event.preventDefault();
 
-        <tr>
+    const btn = document.getElementById(`btn-save-${id}`);
 
-            <td colspan="7" class="loading-cell">
+    btn.disabled = true;
 
-                No upcoming appointments.
+    btn.innerHTML = "Saving...";
 
-            </td>
+    const payload = {
 
-        </tr>
+    row_number:id,
 
-    `;
+    "Appointment Date":
+    document.getElementById(`edit-date-${id}`).value,
 
-}else{
+    Time:
+    document.getElementById(`edit-time-${id}`).value,
 
-    upcoming.forEach(item=>{
+    Location:
+    document.getElementById(`edit-location-${id}`).value,
 
-        upcomingTable.appendChild(item.mainRow);
+    Status:
+    document.getElementById(`edit-status-${id}`).value,
 
-        upcomingTable.appendChild(item.editRow);
+    Remarks:
+    document.getElementById(`edit-remarks-${id}`).value
+
+};
+
+    try{
+
+        const response = await fetch(updateWebhookUrl,{
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify(payload)
+
+        });
+
+        if(!response.ok){
+
+            throw new Error("Update failed");
+
+        }
+
+        toggleEditForm(id);
+
+        loadAppointments();
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        alert("Unable to update appointment.");
+
+    }
+
+    finally{
+
+        btn.disabled = false;
+
+        btn.innerHTML = "Save Changes";
+
+    }
+
+}
+
+
+
+// ======================================================
+// DELETE APPOINTMENT
+// ======================================================
+
+async function deleteAppointment(id){
+
+    const confirmDelete = confirm(
+
+        "Are you sure you want to delete this appointment?"
+
+    );
+
+    if(!confirmDelete) return;
+
+    try{
+
+        const response = await fetch(deleteWebhookUrl,{
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+
+                row_number:id
+
+            })
+
+        });
+
+        if(!response.ok){
+
+            throw new Error("Delete failed");
+
+        }
+
+        loadAppointments();
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        alert("Unable to delete appointment.");
+
+    }
+
+}
+
+
+
+// ======================================================
+// SEARCH + FILTER
+// ======================================================
+
+function applyFilters(){
+
+    const keyword =
+    document.getElementById("searchInput")
+    .value
+    .toLowerCase();
+
+    const selectedDate =
+    document.getElementById("dateFilter")
+    .value;
+
+    const selectedStatus =
+    document.getElementById("statusFilter")
+    .value
+    .toLowerCase();
+
+    document.querySelectorAll("tbody tr").forEach(row=>{
+
+        if(row.classList.contains("edit-row")) return;
+
+        const text =
+        row.innerText.toLowerCase();
+
+        const dateCell =
+        row.cells[0] ?
+        row.cells[0].innerText.trim() :
+        "";
+
+        const statusCell =
+        row.cells[4] ?
+        row.cells[4].innerText.toLowerCase() :
+        "";
+
+        let visible = true;
+
+        if(keyword){
+
+            visible =
+            text.includes(keyword);
+
+        }
+
+        if(visible && selectedDate){
+
+            visible =
+            dateCell.includes(selectedDate);
+
+        }
+
+        if(visible && selectedStatus){
+
+            visible =
+            statusCell.includes(selectedStatus);
+
+        }
+
+        row.style.display =
+        visible ? "" : "none";
+
+        const editRow =
+        document.getElementById(
+
+            row.id.replace("main-row","edit-form")
+
+        );
+
+        if(editRow && !visible){
+
+            editRow.style.display="none";
+
+        }
 
     });
 
 }
 
 
+
 // ======================================================
-// RENDER PAST TABLE
+// EVENTS
 // ======================================================
 
-if(past.length===0){
+document.getElementById("searchInput")
+.addEventListener("keyup",applyFilters);
 
-    pastTable.innerHTML=`
+document.getElementById("dateFilter")
+.addEventListener("change",applyFilters);
 
-        <tr>
+document.getElementById("statusFilter")
+.addEventListener("change",applyFilters);
 
-            <td colspan="7" class="loading-cell">
-
-                No past appointments.
-
-            </td>
-
-        </tr>
-
-    `;
-
-}else{
-
-    past.forEach(item=>{
-
-        pastTable.appendChild(item.mainRow);
-
-        pastTable.appendChild(item.editRow);
-
-    });
-
-}
 
 
 // ======================================================
-// UPDATE DASHBOARD COUNTERS
+// AUTO REFRESH
 // ======================================================
 
-document.getElementById("upcomingCount").textContent=upcomingCount;
+loadAppointments();
 
-document.getElementById("todayCount").textContent=todayCount;
-
-document.getElementById("completedCount").textContent=completedCount;
-
-document.getElementById("pastCount").textContent=pastCount;
-
-})
-
-.catch(error=>{
-
-    console.error(error);
-
-    document.getElementById("upcomingTableBody").innerHTML=`
-
-        <tr>
-
-            <td colspan="7" class="loading-cell">
-
-                Failed to load appointments.
-
-            </td>
-
-        </tr>
-
-    `;
-
-    document.getElementById("pastTableBody").innerHTML=`
-
-        <tr>
-
-            <td colspan="7" class="loading-cell">
-
-                Failed to load appointments.
-
-            </td>
-
-        </tr>
-
-    `;
-
-});
-
-}
+setInterval(loadAppointments,60000);
     </script>
 
     <!-- Chat Logic -->
