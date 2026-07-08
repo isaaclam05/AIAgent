@@ -165,6 +165,8 @@
                                 <th>Status</th>
                                 
                                 <th>Remarks</th>
+                                
+                                <th>Actions</th>
                             
                             </tr>
                         
@@ -193,59 +195,378 @@
     
     </section>
 
-<script>
-    // 1. PASTE YOUR N8N GET WEBHOOK URL HERE
-    const getWebhookUrl = 'https://n8ngc.codeblazar.org/webhook/dashboard';
+    <script>
+        const getWebhookUrl = "https://n8ngc.codeblazar.org/webhook/dashboard";
+const updateWebhookUrl = "https://n8ngc.codeblazar.org/webhook/dashboard-update";
+const deleteWebhookUrl = "https://n8ngc.codeblazar.org/webhook/dashboard-delete";
+
+// =============================
+// LOAD APPOINTMENTS
+// =============================
+
+function loadAppointments() {
 
     fetch(getWebhookUrl)
+
         .then(response => response.json())
+
         .then(data => {
-            const tableBody = document.getElementById('tableBody');
-            tableBody.innerHTML = ''; 
+
+            const tableBody = document.getElementById("tableBody");
+
+            tableBody.innerHTML = "";
 
             data.forEach(row => {
-                const tr = document.createElement('tr');
-                
-                // Using the exact structure you requested!
-                tr.innerHTML = `
-                    <td><strong>${row['Date'] || 'N/A'}</strong></td>
-                    <td><strong>${row['Time'] || 'N/A'}</strong></td>
-                    <td>${row['Client Name'] || 'N/A'}</td>
-                    <td>${row['Location'] || 'N/A'}</td>
-                    <td><span class="status-badge">${row['Status'] || 'Pending'}</span></td>
-                    <td>${row['Remarks'] || '-'}</td>
+
+                const id = row.row_number;
+
+                const mainRow = document.createElement("tr");
+
+                mainRow.id = `main-row-${id}`;
+
+                mainRow.innerHTML = `
+
+                    <td id="display-date-${id}">
+                        <strong>${row["Appointment Date"] || row["Date"] || "N/A"}</strong>
+                    </td>
+
+                    <td id="display-time-${id}">
+                        <strong>${row["Time"] || "N/A"}</strong>
+                    </td>
+
+                    <td>${row["Client Name"] || "N/A"}</td>
+
+                    <td id="display-location-${id}">
+                        ${row["Location"] || "-"}
+                    </td>
+
+                    <td id="display-status-${id}">
+                        <span class="status-badge">
+                            ${row["Status"] || "Pending"}
+                        </span>
+                    </td>
+
+                    <td id="display-remarks-${id}">
+                        ${row["Remarks"] || "-"}
+                    </td>
+
+                    <td>
+
+                        <button class="edit-btn"
+                            onclick="toggleEditForm(${id})">
+                            Edit
+                        </button>
+
+                        <button class="delete-btn"
+                            onclick="deleteAppointment(${id})">
+                            Delete
+                        </button>
+
+                    </td>
+
                 `;
-                tableBody.appendChild(tr);
+
+                const editRow = document.createElement("tr");
+
+                editRow.id = `edit-form-${id}`;
+
+                editRow.className = "edit-row";
+
+                editRow.innerHTML = `
+
+                    <td colspan="7">
+
+                        <div class="edit-form-container">
+
+                            <h4>Update Appointment</h4>
+
+                            <form
+                                onsubmit="submitUpdate(event,${id})">
+
+                                <div class="edit-grid">
+
+                                    <div>
+
+                                        <label>Date</label>
+
+                                        <input
+                                            type="date"
+                                            id="edit-date-${id}"
+                                            value="${row["Appointment Date"] || row["Date"] || ""}"
+                                            required>
+
+                                    </div>
+
+                                    <div>
+
+                                        <label>Time</label>
+
+                                        <input
+                                            type="time"
+                                            id="edit-time-${id}"
+                                            value="${row["Time"] || ""}"
+                                            required>
+
+                                    </div>
+
+                                    <div>
+
+                                        <label>Location</label>
+
+                                        <input
+                                            type="text"
+                                            id="edit-location-${id}"
+                                            value="${row["Location"] || ""}"
+                                            required>
+
+                                    </div>
+
+                                    <div>
+
+                                        <label>Status</label>
+
+                                        <select id="edit-status-${id}">
+
+                                            <option value="Pending"
+                                                ${row["Status"]=="Pending"?"selected":""}>
+                                                Pending
+                                            </option>
+
+                                            <option value="Confirmed"
+                                                ${row["Status"]=="Confirmed"?"selected":""}>
+                                                Confirmed
+                                            </option>
+
+                                            <option value="Completed"
+                                                ${row["Status"]=="Completed"?"selected":""}>
+                                                Completed
+                                            </option>
+
+                                        </select>
+
+                                    </div>
+
+                                    <div style="grid-column:1/-1">
+
+                                        <label>Remarks</label>
+
+                                        <input
+                                            type="text"
+                                            id="edit-remarks-${id}"
+                                            value="${row["Remarks"] || ""}">
+
+                                    </div>
+
+                                </div>
+
+                                <button
+                                    id="btn-save-${id}"
+                                    class="save-btn">
+
+                                    Save Changes
+
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </td>
+
+                `;
+
+                tableBody.appendChild(mainRow);
+
+                tableBody.appendChild(editRow);
+
             });
+
         })
-        .catch(error => {
-            console.error('Error:', error);
-            document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" style="color:red; text-align:center;">Failed to load data. Make sure n8n is active.</td></tr>';
+
+        .catch(() => {
+
+            document.getElementById("tableBody").innerHTML = `
+
+                <tr>
+
+                    <td colspan="7"
+                        class="loading-cell">
+
+                        Unable to load appointments.
+
+                    </td>
+
+                </tr>
+
+            `;
+
         });
 
-        const searchInput = document.getElementById("searchInput");
+}
 
-searchInput.addEventListener("keyup", function () {
+// =============================
+// SHOW / HIDE EDIT FORM
+// =============================
 
-    const filter = this.value.toLowerCase();
+function toggleEditForm(id){
 
-    const rows = document.querySelectorAll("#tableBody tr");
+    const form = document.getElementById(`edit-form-${id}`);
 
-    rows.forEach(row => {
+    form.style.display =
+        form.style.display==="table-row"
+        ? "none"
+        : "table-row";
 
-        // Gets ALL text inside the row
-        const text = row.textContent.toLowerCase();
+}
 
-        if (text.includes(filter)) {
-            row.style.display = "";
-        } else {
-            row.style.display = "none";
-        }
+// =============================
+// UPDATE APPOINTMENT
+// =============================
+
+function submitUpdate(event,id){
+
+    event.preventDefault();
+
+    const btn =
+        document.getElementById(`btn-save-${id}`);
+
+    btn.innerHTML = "Saving...";
+
+    const payload = {
+
+        row_number:id,
+
+        Date:
+            document.getElementById(`edit-date-${id}`).value,
+
+        Time:
+            document.getElementById(`edit-time-${id}`).value,
+
+        Location:
+            document.getElementById(`edit-location-${id}`).value,
+
+        Status:
+            document.getElementById(`edit-status-${id}`).value,
+
+        Remarks:
+            document.getElementById(`edit-remarks-${id}`).value
+
+    };
+
+    fetch(updateWebhookUrl,{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify(payload)
+
+    })
+
+    .then(()=>{
+
+        document.getElementById(`display-date-${id}`).innerHTML =
+        `<strong>${payload.Date}</strong>`;
+
+        document.getElementById(`display-time-${id}`).innerHTML =
+        `<strong>${payload.Time}</strong>`;
+
+        document.getElementById(`display-location-${id}`).innerHTML =
+        payload.Location;
+
+        document.getElementById(`display-status-${id}`).innerHTML =
+        `<span class="status-badge">${payload.Status}</span>`;
+
+        document.getElementById(`display-remarks-${id}`).innerHTML =
+        payload.Remarks;
+
+        btn.innerHTML="Save Changes";
+
+        toggleEditForm(id);
+
+    })
+
+    .catch(()=>{
+
+        alert("Update failed.");
+
+        btn.innerHTML="Save Changes";
+
+    });
+
+}
+
+// =============================
+// DELETE APPOINTMENT
+// =============================
+
+function deleteAppointment(id){
+
+    if(!confirm("Delete this appointment?")) return;
+
+    fetch(deleteWebhookUrl,{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+
+            row_number:id
+
+        })
+
+    })
+
+    .then(()=>{
+
+        document.getElementById(`main-row-${id}`).remove();
+
+        document.getElementById(`edit-form-${id}`).remove();
+
+    })
+
+    .catch(()=>{
+
+        alert("Delete failed.");
+
+    });
+
+}
+
+// =============================
+// SEARCH
+// =============================
+
+document
+.getElementById("searchInput")
+.addEventListener("keyup",function(){
+
+    const filter=this.value.toLowerCase();
+
+    document
+    .querySelectorAll("#tableBody tr")
+    .forEach(row=>{
+
+        row.style.display=
+            row.innerText.toLowerCase().includes(filter)
+            ? ""
+            : "none";
 
     });
 
 });
-</script>
+
+// =============================
+// INITIAL LOAD
+// =============================
+
+loadAppointments();
+    </script>
     <!-- Chat Logic -->
     <script src="js/chat.js"></script>
     
