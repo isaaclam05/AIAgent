@@ -631,17 +631,7 @@ body:not(.dark) .navbar{
 
     font-size:26px;
 
-    background:
-
-        linear-gradient(
-
-            135deg,
-
-            var(--primary),
-
-            var(--accent)
-
-        );
+    background: transparent;
 
     box-shadow:
 
@@ -2178,11 +2168,7 @@ body:not(.dark) .navbar{
 
     font-size:24px;
 
-    background:linear-gradient(
-        135deg,
-        var(--primary),
-        var(--accent)
-    );
+    background: transparent;
 
     box-shadow:
 
@@ -9797,5 +9783,103 @@ body.dark-mode .faq-item p{
         font-size:1.7rem;
 
     }
+
+}
+
+/* ==========================================
+   Footer Logo
+========================================== */
+
+.footer-logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:18px;
+}
+
+.footer-brand-logo{
+    width:82px;
+    height:82px;
+    object-fit:contain;
+    flex-shrink:0;
+}
+
+.footer-logo h3{
+    margin:0;
+    font-size:2.6rem;
+    font-weight:700;
+    line-height:1;
+    color:#fff;
+}
+
+.footer-logo h3 span{
+    color:#7C5CFF;
+}
+
+/* ==========================
+   Logo
+========================== */
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    text-decoration:none;
+}
+
+.logo-image{
+    width:58px;
+    height:58px;
+    object-fit:contain;
+    display:block;
+    flex-shrink:0;
+}
+
+.logo span{
+    font-size: 90%;
+    font-weight:700;
+    color:var(--primary);
+    line-height:1;
+}
+
+.send-button{
+
+    width:52px;
+
+    height:52px;
+
+    border:none;
+
+    border-radius:16px;
+
+    background:linear-gradient(
+        135deg,
+        var(--primary),
+        var(--accent)
+    );
+
+    color:#FFF;
+
+    font-size:1.2rem;
+
+    cursor:pointer;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    transition:.3s ease;
+
+    flex-shrink:0;
+
+}
+
+.send-button:hover{
+
+    transform:translateY(-2px);
+
+    box-shadow:0 10px 25px rgba(108,99,255,.35);
 
 }

@@ -3709,3 +3709,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
+const userInput = document.getElementById("userInput");
+
+userInput.addEventListener("keydown", function (e) {
+
+    if (e.key === "Enter" && !e.shiftKey) {
+
+        e.preventDefault();
+
+        sendMessage();
+
+    }
+
+});

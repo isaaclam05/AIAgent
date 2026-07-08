@@ -1,48 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Remi+ AI Agent</title>
-
-    <!-- Main CSS -->
-    <link
-        rel="stylesheet"
-        href="css/style.css"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remi+ | Dashboard</title>
     <!-- Google Font -->
-    <link
-        rel="preconnect"
-        href="https://fonts.googleapis.com"
-    >
+    <link rel="preconnect" href="https://fonts.googleapis.com">
 
-    <link
-        rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossorigin
-    >
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet"
-    >
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Highlight.js Theme -->
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css"
-    >
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
 
+    <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
 
     <!-- Background -->
@@ -51,378 +24,601 @@
 
     <div class="background-blur blur2"></div>
 
-    <!-- ================= NAVBAR ================= -->
+<!-- ================= NAVBAR ================= -->
 
-    <header class="navbar">
-        
-        <div class="container">
-            
-            <a href="index.html" class="logo">
-                
-                <div class="logo-circle">
-                    
-                    <img src="images/logo.png" alt="Remi+ Logo">
-                
-                </div>
-                
-                <span>Remi+</span>
-            
-            </a>
-            
-            <nav class="nav-links">
-                
-                <a href="index.html">Home</a>
-                
-                <a href="ai-chat.html">AI Chat</a>
-                
-                <a href="medications.html">Medications</a>
-                
-                <a href="appointments.html">Appointments</a>
-                
-                <a href="contact.html">Contact</a>
-            
-            </nav>
-            
-            <div class="nav-right">
-                
-                <button id="themeToggle" class="theme-toggle">
-                    🌙
-                </button>
-                
-                <button class="login-btn">
-                    Login
-                </button>
-            
-            </div>
-        
+<header class="navbar">
+
+    <div class="container">
+
+        <!-- Logo -->
+        <a href="index.html" class="logo">
+
+            <img
+                src="images/logo.png"
+                alt="Remi+ Logo"
+                class="logo-image"
+            >
+
+            <span>Remi+</span>
+
+        </a>
+
+        <!-- Navigation -->
+        <nav class="nav-links">
+
+            <a href="index.html">Home</a>
+
+            <a href="ai-chat.html">AI Chat</a>
+
+            <a href="medications.html">Medications</a>
+
+            <a href="appointments.html">Appointments</a>
+
+            <a href="contact.html">Contact</a>
+
+        </nav>
+
+        <!-- Right -->
+        <div class="nav-right">
+
+            <button class="login-btn">
+                Login
+            </button>
+
         </div>
-    
-    </header>
 
-    <!-- ================= HERO ================= -->
+    </div>
 
-    <section id="home" class="hero">
+</header>
 
-        <div class="container hero-grid">
+<section id="medications" class="chat-section">
 
-            <div class="hero-left">
+    <div class="container">
 
-                <span class="badge">
+        <!-- Section Title -->
 
-                    Powered by GPT-5.5 • n8n • OpenRouter
+        <div class="section-title">
 
-                </span>
+            <span class="section-tag">
 
-                <h1>
+                MEDICATIONS
 
-                    Meet the Future of Intelligent AI Assistance.
+            </span>
 
-                </h1>
+            <h2>
 
-                <p>
+                Medication Reminders
 
-                    Remi+ AI Agent is an intelligent AI assistant capable of
-                    answering questions, analysing information,
-                    automating workflows, integrating with databases,
-                    and helping users make smarter decisions.
+            </h2>
 
-                </p>
+            <p>
 
-                <div class="hero-buttons">
+                Stay on track with your medications by viewing schedules,
+                managing reminders, and monitoring your daily medication routine.
 
-                    <a href="#chat">
+            </p>
 
-                        <button class="primary-btn">
+        </div>
 
-                            Start Chat
+        <!-- ===================== -->
+        <!-- Medication Dashboard -->
+        <!-- ===================== -->
 
-                        </button>
+        <div class="appointment-card">
+
+            <div class="header">
+
+                <div>
+
+                    <h3>
+
+                        Medication Dashboard
+
+                    </h3>
+
+                    <p>
+
+                        Manage all medication reminders in one place.
+
+                    </p>
+
+                </div>
+
+                <div class="buttons">
+
+                    <a
+                        href="add-medication.html"
+                        class="add-btn"
+                    >
+
+                        + Add Medication
 
                     </a>
 
-                    <button class="secondary-btn">
+                    <button
+                        class="add-btn refresh-btn"
+                        onclick="fetchMedications()"
+                    >
 
-                        Learn More
-
-                    </button>
-
-                </div>
-
-            </div>
-
-            <div class="hero-right">
-
-                <div class="hero-card">
-
-                    <div class="hero-card-header">
-
-                        <div class="online-dot"></div>
-
-                        Remi+ Agent Online
-
-                    </div>
-
-                    <div class="hero-message bot">
-
-                        👋 Welcome back!
-
-                    </div>
-
-                    <div class="hero-message user">
-
-                        Analyse my monthly spending.
-
-                    </div>
-
-                    <div class="hero-message bot">
-
-                        Based on your recent transactions,
-                        I've identified three opportunities to save
-                        approximately $285 every month.
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </section>
-
-    <!-- ================= CHAT ================= -->
-
-    <section id="chat" class="chat-section">
-
-        <div class="container">
-
-            <div class="section-title">
-
-                <span>
-
-                    AI CHAT
-
-                </span>
-
-                <h2>
-
-                    Talk With Remi+ AI Agent
-
-                </h2>
-
-                <p>
-
-                    Experience natural conversations powered by GPT and n8n.
-
-                </p>
-
-            </div>
-
-            <div class="chat-container">
-
-                <div class="chat-header">
-
-                    <div class="chat-user">
-
-                        <div class="chat-avatar">
-
-                            🤖
-
-                        </div>
-
-                        <div>
-
-                            <h3>
-
-                                Remi+ AI Agent
-
-                            </h3>
-
-                            <span>
-
-                                ● Online
-
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                    <button id="clearChat">
-
-                        Clear Chat
+                        Refresh
 
                     </button>
 
                 </div>
 
-                <div
-    id="messages"
-    class="chat-messages"
->
-
-    <!-- Welcome -->
-
-    <div class="bot-message markdown-body">
-
-        <h3>👋 Welcome to <strong>Remi+</strong></h3>
-
-        <p>
-            I'm your intelligent AI assistant.
-        </p>
-
-        <p>
-            I can help with:
-        </p>
-
-        <ul>
-
-            <li>💬 General Questions</li>
-
-            <li>📊 Data Analysis</li>
-
-            <li>💻 Programming</li>
-
-            <li>🌍 Translation</li>
-
-            <li>📝 Writing</li>
-
-            <li>📚 Research</li>
-
-        </ul>
-
-        <hr>
-
-        <p>
-
-            Click the <strong>🎤 microphone</strong> or start typing below.
-
-        </p>
-
-    </div>
-
-</div>
-
-<div class="chat-input">
-
-    <div class="input-wrapper">
-
-        <!-- Voice -->
-
-        <button
-            id="micButton"
-            class="icon-button"
-            title="Voice Input"
-        >
-            🎤
-        </button>
-
-        <!-- Text -->
-
-        <textarea
-            id="userInput"
-            rows="1"
-            placeholder="Message Remi+..."
-            autocomplete="off"
-            spellcheck="true"
-        ></textarea>
-
-    </div>
-
-    <div
-        id="voiceStatus"
-        class="voice-status"
-    >
-
-        🎤 Click the microphone to start speaking
-
-    </div>
-
-</div>
-
             </div>
+
+            <!-- Search -->
+
+            <input
+                type="text"
+                id="searchBox"
+                placeholder="Search patient or medication..."
+            >
+
+            <!-- Medication Table -->
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+
+                            Patient
+
+                        </th>
+
+                        <th>
+
+                            Medication
+
+                        </th>
+
+                        <th>
+
+                            Time
+
+                        </th>
+
+                        <th>
+
+                            Dosage
+
+                        </th>
+
+                        <th>
+
+                            Frequency
+
+                        </th>
+
+                        <th>
+
+                            Action
+
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="medTableBody">
+
+                    <tr>
+
+                        <td
+                            colspan="6"
+                            class="loading"
+                        >
+
+                            Loading medications...
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
 
         </div>
 
-    </section>
+    </div>
 
-    <!-- ==========================================
+</section>
+
+<script>
+
+const WEBHOOK_URL = "https://n8ngc.codeblazar.org/webhook/medication-form";
+
+
+// Convert time into minutes for sorting
+function convertTimeToMinutes(time) {
+
+    if (!time) return 0;
+
+    let [hours, minutes] = time.split(":");
+
+    hours = parseInt(hours);
+    minutes = parseInt(minutes);
+
+    return (hours * 60) + minutes;
+
+}
+
+
+// Convert 24-hour time to 12-hour format
+function formatTime(time) {
+
+    if (!time) return "-";
+
+    let [hour, minute] = time.split(":");
+
+    hour = parseInt(hour);
+
+    let period = hour >= 12 ? "PM" : "AM";
+
+    hour = hour % 12 || 12;
+
+    return `${hour}:${minute} ${period}`;
+
+}
+
+
+
+// Fetch medication data
+async function fetchMedications() {
+
+    const tbody = document.getElementById("medTableBody");
+
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="6" class="loading">
+                Loading...
+            </td>
+        </tr>
+    `;
+
+
+    try {
+
+        const response = await fetch(
+            WEBHOOK_URL + "?t=" + new Date().getTime()
+        );
+
+
+        const medications = await response.json();
+
+
+        tbody.innerHTML = "";
+
+
+        if (!medications || medications.length === 0) {
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="loading">
+                        No records found.
+                    </td>
+                </tr>
+            `;
+
+            return;
+
+        }
+
+
+
+        // Sort medication time from 12:01 AM → 12:00 AM
+        medications.sort((a, b) => {
+
+            let timeA = a.time || a.Time || "00:00";
+
+            let timeB = b.time || b.Time || "00:00";
+
+
+            return (
+                convertTimeToMinutes(timeA) -
+                convertTimeToMinutes(timeB)
+            );
+
+        });
+
+
+
+        // Display medication records
+
+        medications.forEach(item => {
+
+
+            tbody.innerHTML += `
+
+                <tr>
+
+                    <td>
+                        ${item.patientName || item.Patientname || "-"}
+                    </td>
+
+
+                    <td>
+                        ${item["Medication Name"] || item.medication || "-"}
+                    </td>
+
+
+                    <td>
+                        ${formatTime(item.time || item.Time)}
+                    </td>
+
+
+                    <td>
+                        ${item.dosage || item.DosageLevel || "-"}
+                    </td>
+
+
+                    <td>
+                        ${item.frequency || item.Frequency || "-"}
+                    </td>
+
+
+                    <td class="action-buttons">
+
+
+                        <button
+                            onclick="editMedication('${item.ID}')"
+                            class="btn-action edit-btn">
+
+                            Edit
+
+                        </button>
+
+
+
+                        <button
+                            onclick="deleteMedication('${item.ID}')"
+                            class="btn-action delete-btn">
+
+                            Delete
+
+                        </button>
+
+
+                    </td>
+
+
+                </tr>
+
+            `;
+
+
+        });
+
+
+
+    } catch (error) {
+
+
+        console.error(error);
+
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="error">
+                    Failed to load data.
+                </td>
+            </tr>
+        `;
+
+    }
+
+}
+
+
+
+
+// Delete medication
+
+async function deleteMedication(id) {
+
+
+    if (!confirm("Are you sure you want to delete?")) {
+
+        return;
+
+    }
+
+
+
+    await fetch(
+        "https://n8ngc.codeblazar.org/webhook/delete-medication",
+        {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                id: id
+            })
+
+        }
+    );
+
+
+
+    fetchMedications();
+
+}
+
+
+
+
+// Open edit modal
+
+function editMedication(id) {
+
+
+    document.getElementById("editId").value = id;
+
+
+    document.getElementById("editModal").style.display = "block";
+
+
+}
+
+
+
+
+// Save edited medication
+
+async function saveEdit() {
+
+
+    const payload = {
+
+
+        id: document.getElementById("editId").value,
+
+
+        dosage: document.getElementById("editDosage").value,
+
+
+        frequency: document.getElementById("editFrequency").value
+
+
+    };
+
+
+
+    await fetch(
+        "https://n8ngc.codeblazar.org/webhook/update-medication-tool",
+        {
+
+            method: "POST",
+
+            headers: {
+
+                "Content-Type": "application/json"
+
+            },
+
+            body: JSON.stringify(payload)
+
+        }
+    );
+
+
+
+    document.getElementById("editModal").style.display = "none";
+
+
+    fetchMedications();
+
+
+}
+
+
+
+// Load medication when page opens
+
+fetchMedications();
+
+
+</script>
+
+<!-- ==========================================
      FOOTER
-     ========================================== -->
+========================================== -->
 
-     <footer class="footer">
+<footer class="footer">
 
-        <div class="footer-container">
+    <div class="footer-container">
 
-            <div class="footer-left">
+        <!-- Left -->
+        <div class="footer-left">
 
-        
-                <h3>Remi<span>+</span></h3>
+            <div class="footer-logo">
 
-    
-                <p>
+                <img
+                    src="images/logo.png"
+                    alt="Remi+ Logo"
+                    class="footer-brand-logo"
+                >
 
-                    Intelligent Healthcare Appointment Assistant powered by AI,
-                    designed to simplify appointment management for patients
-                    and healthcare providers.
-                </p>
-            
+                <h3>
+                    Remi<span>+</span>
+                </h3>
+
             </div>
-            
-            <div class="footer-center">
-                
-                <h4>Quick Links</h4>
-                
-                <ul>
-                    
-                    <li><a href="#home">Home</a></li>
-                    
-                    <li><a href="#features">Features</a></li>
-                    
-                    <li><a href="#dashboard">Dashboard</a></li>
-                    
-                    <li><a href="#contact">Contact</a></li>
 
-                </ul>
-    
-            </div>
-            
-            <div class="footer-right">
-                
-                <h4>Technology</h4>
-                
-                <div class="tech-list">
-                    
-                    <span>OpenAI</span>
-                    
-                    <span>n8n</span>
-                    
-                    <span>Google Sheets</span>
-
-                    <span>HTML</span>
-                    
-                    <span>CSS</span>
-
-                    <span>JavaScript</span>
-                
-                </div>
-            
-            </div>
-        
-        </div>
-        
-        <div class="footer-bottom">
             <p>
-                © 2026 Remi+ AI Appointment Assistant. All Rights Reserved.
+                Intelligent Healthcare Appointment Assistant powered by AI,
+                designed to simplify appointment management for patients
+                and healthcare providers.
             </p>
-            
-            <p>
-                Designed & Developed by Isaac Lam
-            </p>
-        
+
         </div>
-    
-    </footer>
+
+        <!-- Center -->
+        <div class="footer-center">
+
+            <h4>Quick Links</h4>
+
+            <ul>
+
+                <li><a href="#home">Home</a></li>
+
+                <li><a href="#features">Features</a></li>
+
+                <li><a href="#dashboard">Dashboard</a></li>
+
+                <li><a href="#contact">Contact</a></li>
+
+            </ul>
+
+        </div>
+
+        <!-- Right -->
+        <div class="footer-right">
+
+            <h4>Technology</h4>
+
+            <div class="tech-list">
+
+                <span>OpenAI</span>
+
+                <span>n8n</span>
+
+                <span>Google Sheets</span>
+
+                <span>HTML</span>
+
+                <span>CSS</span>
+
+                <span>JavaScript</span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="footer-bottom">
+
+        <p>
+            © 2026 Remi+ AI Appointment Assistant. All Rights Reserved.
+        </p>
+
+        <p>
+            Designed & Developed by Isaac Lam
+        </p>
+
+    </div>
+
+</footer>
 
     <!-- ==========================================
     JAVASCRIPT LIBRARIES
@@ -439,6 +635,8 @@
 
     <!-- Chat Logic -->
     <script src="js/chat.js"></script>
+
+    <script src="js/main.js"></script>
     
 </body>
 </html>

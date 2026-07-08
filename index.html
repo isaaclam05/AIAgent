@@ -15,6 +15,12 @@
     <!-- Main CSS -->
     <link
         rel="stylesheet"
+        href="css/indexstyle.css"
+    >
+
+    <!-- Main CSS -->
+    <link
+        rel="stylesheet"
         href="css/style.css"
     >
 
@@ -51,136 +57,123 @@
 
     <div class="background-blur blur2"></div>
 
-    <!-- ================= NAVBAR ================= -->
+<!-- ================= NAVBAR ================= -->
 
-    <header class="navbar">
-        
-        <div class="container">
-            
-            <a href="index.html" class="logo">
-                
-                <div class="logo-circle">
-                    
-                    <img src="images/logo.png" alt="Remi+ Logo">
-                
-                </div>
-                
-                <span>Remi+</span>
-            
-            </a>
-            
-            <nav class="nav-links">
-                
-                <a href="index.html">Home</a>
-                
-                <a href="ai-chat.html">AI Chat</a>
-                
-                <a href="medications.html">Medications</a>
-                
-                <a href="appointments.html">Appointments</a>
-                
-                <a href="contact.html">Contact</a>
-            
-            </nav>
-            
-            <div class="nav-right">
-                
-                <button id="themeToggle" class="theme-toggle">
-                    🌙
-                </button>
-                
-                <button class="login-btn">
-                    Login
-                </button>
-            
-            </div>
-        
+<header class="navbar">
+
+    <div class="container">
+
+        <!-- Logo -->
+        <a href="index.html" class="logo">
+
+            <img
+                src="images/logo.png"
+                alt="Remi+ Logo"
+                class="logo-image"
+            >
+
+            <span>Remi+</span>
+
+        </a>
+
+        <!-- Navigation -->
+        <nav class="nav-links">
+
+            <a href="index.html">Home</a>
+
+            <a href="ai-chat.html">AI Chat</a>
+
+            <a href="medications.html">Medications</a>
+
+            <a href="appointments.html">Appointments</a>
+
+            <a href="contact.html">Contact</a>
+
+        </nav>
+
+        <!-- Right -->
+        <div class="nav-right">
+
+            <button class="login-btn">
+                Login
+            </button>
+
         </div>
-    
-    </header>
 
-    <!-- ================= HERO ================= -->
+    </div>
 
-    <section id="home" class="hero">
+</header>
 
-        <div class="container hero-grid">
+<!-- ==========================================
+     HERO
+========================================== -->
 
-            <div class="hero-left">
+<section class="hero" id="home">
 
-                <span class="badge">
+    <div class="container hero-grid">
 
-                    Powered by GPT-5.5 • n8n • OpenRouter
+        <!-- Left Content -->
 
-                </span>
+        <div class="hero-content">
 
-                <h1>
+            <span class="hero-badge">
 
-                    Meet the Future of Intelligent AI Assistance.
+                AI-Powered Healthcare Appointment Assistant
 
-                </h1>
+            </span>
 
-                <p>
+            <h1>
 
-                    Remi+ AI Agent is an intelligent AI assistant capable of
-                    answering questions, analysing information,
-                    automating workflows, integrating with databases,
-                    and helping users make smarter decisions.
+                Smart AI for Healthcare Scheduling
 
-                </p>
+            </h1>
 
-                <div class="hero-buttons">
+            <p>
 
-                    <a href="#chat">
+                Manage appointments more efficiently through AI-powered conversations,
+                automated reminders, and real-time scheduling.
 
-                        <button class="primary-btn">
+            </p>
 
-                            Start Chat
+            <div class="hero-buttons">
 
-                        </button>
+                <a href="appointments.html" class="primary-btn">
 
-                    </a>
+                    Book Appointment
 
-                    <button class="secondary-btn">
+                </a>
 
-                        Learn More
+                <a href="#features" class="secondary-btn">
 
-                    </button>
+                    Explore Features
 
-                </div>
+                </a>
 
             </div>
 
-            <div class="hero-right">
+            <div class="hero-stats">
 
-                <div class="hero-card">
+                <div>
 
-                    <div class="hero-card-header">
+                    <h3>24/7</h3>
 
-                        <div class="online-dot"></div>
+                    <span>AI Availability</span>
 
-                        Remi+ Agent Online
+                </div>
 
-                    </div>
+                <div>
 
-                    <div class="hero-message bot">
+                    <h3>100%</h3>
 
-                        👋 Welcome back!
+                    <span>Digital Workflow</span>
 
-                    </div>
+                </div>
 
-                    <div class="hero-message user">
+                <div>
 
-                        Analyse my monthly spending.
+                    <h3>AI</h3>
 
-                    </div>
-
-                    <div class="hero-message bot">
-
-                        Based on your recent transactions,
-                        I've identified three opportunities to save
-                        approximately $285 every month.
-
-                    </div>
+                    <span>Powered Assistance</span>
 
                 </div>
 
@@ -188,43 +181,166 @@
 
         </div>
 
-    </section>
+        <!-- Right Content -->
 
-    <!-- ================= CHAT ================= -->
+        <div class="hero-image">
 
-    <section id="chat" class="chat-section">
+            <div class="dashboard-preview">
 
-        <div class="container">
+                <div class="dashboard-header">
 
-            <div class="section-title">
+                    <h3>Today's Appointments</h3>
 
-                <span>
+                    <span>Live Dashboard</span>
 
-                    AI CHAT
+                </div>
 
-                </span>
+                <div class="appointment-card confirmed">
 
-                <h2>
+                    <div>
 
-                    Talk With Remi+ AI Agent
+                        <strong>9:00 AM</strong>
 
-                </h2>
+                        <p>John Tan</p>
 
-                <p>
+                    </div>
 
-                    Experience natural conversations powered by GPT and n8n.
+                    <span>Confirmed</span>
 
-                </p>
+                </div>
+
+                <div class="appointment-card pending">
+
+                    <div>
+
+                        <strong>10:30 AM</strong>
+
+                        <p>Sarah Lim</p>
+
+                    </div>
+
+                    <span>Pending</span>
+
+                </div>
+
+                <div class="appointment-card completed">
+
+                    <div>
+
+                        <strong>11:45 AM</strong>
+
+                        <p>Alex Wong</p>
+
+                    </div>
+
+                    <span>Completed</span>
+
+                </div>
+
+                <div class="appointment-card confirmed">
+
+                    <div>
+
+                        <strong>2:00 PM</strong>
+
+                        <p>Michael Lee</p>
+
+                    </div>
+
+                    <span>Confirmed</span>
+
+                </div>
 
             </div>
 
-            <div class="chat-container">
+        </div>
 
-                <div class="chat-header">
+    </div>
 
-                    <div class="chat-user">
+</section>
 
-                        <div class="chat-avatar">
+<!-- ==========================================
+     ABOUT REMI+
+========================================== -->
+
+<section class="about" id="about">
+
+    <div class="container">
+
+        <div class="section-title">
+
+            <span class="section-tag">
+
+                ABOUT REMI+
+
+            </span>
+
+            <h2>
+
+                Revolutionising Healthcare Appointment Management
+
+            </h2>
+
+            <p>
+
+                Remi+ is an AI-powered healthcare appointment assistant
+                designed to simplify appointment booking, reduce
+                administrative workload, and improve the overall patient
+                experience through intelligent automation.
+
+            </p>
+
+        </div>
+
+        <div class="about-grid">
+
+            <!-- Left -->
+
+            <div class="about-image">
+
+                <img
+                    src="images/logo.png"
+                    alt="Healthcare AI Illustration"
+                >
+
+            </div>
+
+            <!-- Right -->
+
+            <div class="about-content">
+
+                <h3>
+
+                    Why We Created Remi+
+
+                </h3>
+
+                <p>
+
+                    Healthcare providers spend a significant amount of time
+                    managing appointments, answering repetitive enquiries,
+                    and handling manual scheduling. These repetitive tasks
+                    increase administrative workload and reduce the time
+                    available for patient care.
+
+                </p>
+
+                <p>
+
+                    Remi+ was developed to automate these routine processes
+                    using Artificial Intelligence. By combining conversational
+                    AI with workflow automation, Remi+ enables patients to
+                    book appointments, receive reminders, and obtain
+                    healthcare information anytime, while allowing clinics
+                    to manage appointments more efficiently.
+
+                </p>
+
+                <div class="about-highlights">
+
+                    <div class="highlight-card">
+
+                        <div class="highlight-icon">
 
                             🤖
 
@@ -232,197 +348,1346 @@
 
                         <div>
 
-                            <h3>
+                            <h4>
 
-                                Remi+ AI Agent
+                                AI Assistance
 
-                            </h3>
+                            </h4>
 
-                            <span>
+                            <p>
 
-                                ● Online
+                                Intelligent conversations powered by AI.
 
-                            </span>
+                            </p>
 
                         </div>
 
                     </div>
 
-                    <button id="clearChat">
+                    <div class="highlight-card">
 
-                        Clear Chat
+                        <div class="highlight-icon">
 
-                    </button>
+                            📅
+
+                        </div>
+
+                        <div>
+
+                            <h4>
+
+                                Smart Scheduling
+
+                            </h4>
+
+                            <p>
+
+                                Faster appointment booking and management.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="highlight-card">
+
+                        <div class="highlight-icon">
+
+                            🔔
+
+                        </div>
+
+                        <div>
+
+                            <h4>
+
+                                Automated Reminders
+
+                            </h4>
+
+                            <p>
+
+                                Reduce missed appointments with reminders.
+
+                            </p>
+
+                        </div>
+
+                    </div>
 
                 </div>
-
-                <div
-    id="messages"
-    class="chat-messages"
->
-
-    <!-- Welcome -->
-
-    <div class="bot-message markdown-body">
-
-        <h3>👋 Welcome to <strong>Remi+</strong></h3>
-
-        <p>
-            I'm your intelligent AI assistant.
-        </p>
-
-        <p>
-            I can help with:
-        </p>
-
-        <ul>
-
-            <li>💬 General Questions</li>
-
-            <li>📊 Data Analysis</li>
-
-            <li>💻 Programming</li>
-
-            <li>🌍 Translation</li>
-
-            <li>📝 Writing</li>
-
-            <li>📚 Research</li>
-
-        </ul>
-
-        <hr>
-
-        <p>
-
-            Click the <strong>🎤 microphone</strong> or start typing below.
-
-        </p>
-
-    </div>
-
-</div>
-
-<div class="chat-input">
-
-    <div class="input-wrapper">
-
-        <!-- Voice -->
-
-        <button
-            id="micButton"
-            class="icon-button"
-            title="Voice Input"
-        >
-            🎤
-        </button>
-
-        <!-- Text -->
-
-        <textarea
-            id="userInput"
-            rows="1"
-            placeholder="Message Remi+..."
-            autocomplete="off"
-            spellcheck="true"
-        ></textarea>
-
-    </div>
-
-    <div
-        id="voiceStatus"
-        class="voice-status"
-    >
-
-        🎤 Click the microphone to start speaking
-
-    </div>
-
-</div>
 
             </div>
 
         </div>
 
-    </section>
+    </div>
 
-    <!-- ==========================================
-     FOOTER
-     ========================================== -->
+</section>
 
-     <footer class="footer">
+<!-- ==========================================
+     PROBLEMS WE SOLVE
+========================================== -->
 
-        <div class="footer-container">
+<section class="problems" id="problems">
 
-            <div class="footer-left">
+    <div class="container">
 
-        
-                <h3>Remi<span>+</span></h3>
+        <div class="section-title">
 
-    
+            <span class="section-tag">
+
+                WHY REMI+
+
+            </span>
+
+            <h2>
+
+                Solving Everyday Healthcare Challenges
+
+            </h2>
+
+            <p>
+
+                Healthcare providers face increasing administrative demands,
+                while patients expect faster, more convenient access to
+                healthcare services. Remi+ bridges this gap through intelligent
+                automation.
+
+            </p>
+
+        </div>
+
+        <div class="problems-grid">
+
+            <!-- Problems -->
+
+            <div class="problem-column">
+
+                <div class="column-header problem-header">
+
+                    <span>❌</span>
+
+                    <h3>Current Challenges</h3>
+
+                </div>
+
+                <div class="problem-card">
+
+                    <div class="problem-icon">
+
+                        ⏳
+
+                    </div>
+
+                    <div>
+
+                        <h4>
+
+                            Long Waiting Times
+
+                        </h4>
+
+                        <p>
+
+                            Patients often experience delays due to busy phone
+                            lines and manual appointment scheduling.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="problem-card">
+
+                    <div class="problem-icon">
+
+                        📞
+
+                    </div>
+
+                    <div>
+
+                        <h4>
+
+                            Manual Appointment Booking
+
+                        </h4>
+
+                        <p>
+
+                            Receptionists spend valuable time answering calls
+                            and scheduling appointments manually.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="problem-card">
+
+                    <div class="problem-icon">
+
+                        ❗
+
+                    </div>
+
+                    <div>
+
+                        <h4>
+
+                            Missed Appointments
+
+                        </h4>
+
+                        <p>
+
+                            Forgotten appointments reduce clinic efficiency
+                            and waste valuable consultation slots.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="problem-card">
+
+                    <div class="problem-icon">
+
+                        📋
+
+                    </div>
+
+                    <div>
+
+                        <h4>
+
+                            Administrative Workload
+
+                        </h4>
+
+                        <p>
+
+                            Staff spend significant time handling repetitive
+                            administrative tasks instead of focusing on patients.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Center -->
+
+            <div class="solution-center">
+
+                <img
+                    src="images/logo.png"
+                    alt="Remi+ Logo"
+                >
+
+                <h3>
+
+                    Remi+
+
+                </h3>
+
                 <p>
 
-                    Intelligent Healthcare Appointment Assistant powered by AI,
-                    designed to simplify appointment management for patients
-                    and healthcare providers.
+                    Intelligent AI Automation
+
                 </p>
-            
+
             </div>
-            
-            <div class="footer-center">
-                
-                <h4>Quick Links</h4>
-                
-                <ul>
-                    
-                    <li><a href="#home">Home</a></li>
-                    
-                    <li><a href="#features">Features</a></li>
-                    
-                    <li><a href="#dashboard">Dashboard</a></li>
-                    
-                    <li><a href="#contact">Contact</a></li>
 
-                </ul>
-    
-            </div>
-            
-            <div class="footer-right">
-                
-                <h4>Technology</h4>
-                
-                <div class="tech-list">
-                    
-                    <span>OpenAI</span>
-                    
-                    <span>n8n</span>
-                    
-                    <span>Google Sheets</span>
+            <!-- Solutions -->
 
-                    <span>HTML</span>
-                    
-                    <span>CSS</span>
+            <div class="problem-column">
 
-                    <span>JavaScript</span>
-                
+                <div class="column-header solution-header">
+
+                    <span>✅</span>
+
+                    <h3>How Remi+ Helps</h3>
+
                 </div>
-            
+
+                <div class="solution-card">
+
+                    <div class="solution-icon">
+
+                        🤖
+
+                    </div>
+
+                    <div>
+
+                        <h4>
+
+                            AI Chat Assistant
+
+                        </h4>
+
+                        <p>
+
+                            Patients receive instant assistance 24 hours a day,
+                            reducing waiting time.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="solution-card">
+
+                    <div class="solution-icon">
+
+                        📅
+
+                    </div>
+
+                    <div>
+
+                        <h4>
+
+                            Smart Appointment Booking
+
+                        </h4>
+
+                        <p>
+
+                            Book, reschedule, or cancel appointments in
+                            seconds through conversational AI.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="solution-card">
+
+                    <div class="solution-icon">
+
+                        🔔
+
+                    </div>
+
+                    <div>
+
+                        <h4>
+
+                            Automated Reminders
+
+                        </h4>
+
+                        <p>
+
+                            Reminder notifications help reduce no-shows and
+                            improve attendance.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="solution-card">
+
+                    <div class="solution-icon">
+
+                        📊
+
+                    </div>
+
+                    <div>
+
+                        <h4>
+
+                            Efficient Dashboard
+
+                        </h4>
+
+                        <p>
+
+                            Clinics can manage appointments through a single,
+                            organised dashboard.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
             </div>
-        
+
         </div>
-        
-        <div class="footer-bottom">
+
+    </div>
+
+</section>
+
+<!-- ==========================================
+     FEATURES
+========================================== -->
+
+<section class="features" id="features">
+
+    <div class="container">
+
+        <div class="section-title">
+
+            <span class="section-tag">
+
+                FEATURES
+
+            </span>
+
+            <h2>
+
+                Everything You Need for Smarter Healthcare
+
+            </h2>
+
             <p>
-                © 2026 Remi+ AI Appointment Assistant. All Rights Reserved.
+
+                Remi+ combines Artificial Intelligence with workflow automation
+                to provide a seamless healthcare appointment experience for
+                both patients and healthcare providers.
+
             </p>
-            
-            <p>
-                Designed & Developed by Isaac Lam
-            </p>
-        
+
         </div>
-    
-    </footer>
+
+        <div class="features-grid">
+
+            <!-- Feature 1 -->
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+
+                    🤖
+
+                </div>
+
+                <h3>
+
+                    AI Healthcare Assistant
+
+                </h3>
+
+                <p>
+
+                    Chat naturally with Remi+ to ask healthcare questions,
+                    receive appointment assistance, and obtain instant support
+                    anytime.
+
+                </p>
+
+            </div>
+
+            <!-- Feature 2 -->
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+
+                    📅
+
+                </div>
+
+                <h3>
+
+                    Smart Appointment Booking
+
+                </h3>
+
+                <p>
+
+                    Book, reschedule, or cancel appointments through a simple
+                    AI conversation without making phone calls.
+
+                </p>
+
+            </div>
+
+            <!-- Feature 3 -->
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+
+                    💊
+
+                </div>
+
+                <h3>
+
+                    Medication Information
+
+                </h3>
+
+                <p>
+
+                    Search medications and receive useful information,
+                    dosage guidance, and healthcare recommendations.
+
+                </p>
+
+            </div>
+
+            <!-- Feature 4 -->
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+
+                    🔔
+
+                </div>
+
+                <h3>
+
+                    Automated Reminders
+
+                </h3>
+
+                <p>
+
+                    Reduce missed appointments with intelligent reminder
+                    notifications sent before scheduled consultations.
+
+                </p>
+
+            </div>
+
+            <!-- Feature 5 -->
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+
+                    📊
+
+                </div>
+
+                <h3>
+
+                    Appointment Dashboard
+
+                </h3>
+
+                <p>
+
+                    Manage bookings, appointment statuses, and schedules
+                    through a clean and intuitive dashboard interface.
+
+                </p>
+
+            </div>
+
+            <!-- Feature 6 -->
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+
+                    ⚙️
+
+                </div>
+
+                <h3>
+
+                    Workflow Automation
+
+                </h3>
+
+                <p>
+
+                    Powered by OpenAI and n8n to automate repetitive
+                    administrative tasks, saving valuable time for clinics.
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ==========================================
+     HOW REMI+ WORKS
+========================================== -->
+
+<section class="workflow" id="workflow">
+
+    <div class="container">
+
+        <div class="section-title">
+
+            <span class="section-tag">
+
+                HOW IT WORKS
+
+            </span>
+
+            <h2>
+
+                From Patient Request to Confirmed Appointment
+
+            </h2>
+
+            <p>
+
+                Remi+ integrates Artificial Intelligence, workflow automation,
+                and cloud-based data management to streamline appointment
+                scheduling from start to finish.
+
+            </p>
+
+        </div>
+
+        <div class="workflow-container">
+
+            <!-- Step 1 -->
+
+            <div class="workflow-step">
+
+                <div class="workflow-icon">
+
+                    👤
+
+                </div>
+
+                <h3>
+
+                    Patient
+
+                </h3>
+
+                <p>
+
+                    The patient interacts with Remi+ using natural language
+                    to request an appointment or ask healthcare-related
+                    questions.
+
+                </p>
+
+            </div>
+
+            <div class="workflow-arrow">
+
+                →
+
+            </div>
+
+            <!-- Step 2 -->
+
+            <div class="workflow-step">
+
+                <div class="workflow-icon">
+
+                    🤖
+
+                </div>
+
+                <h3>
+
+                    AI Assistant
+
+                </h3>
+
+                <p>
+
+                    OpenAI processes the patient's request, understands
+                    their intent, and generates an intelligent response.
+
+                </p>
+
+            </div>
+
+            <div class="workflow-arrow">
+
+                →
+
+            </div>
+
+            <!-- Step 3 -->
+
+            <div class="workflow-step">
+
+                <div class="workflow-icon">
+
+                    ⚙️
+
+                </div>
+
+                <h3>
+
+                    n8n Workflow
+
+                </h3>
+
+                <p>
+
+                    n8n automatically handles booking logic,
+                    appointment validation,
+                    reminders, and workflow automation.
+
+                </p>
+
+            </div>
+
+            <div class="workflow-arrow">
+
+                →
+
+            </div>
+
+            <!-- Step 4 -->
+
+            <div class="workflow-step">
+
+                <div class="workflow-icon">
+
+                    📄
+
+                </div>
+
+                <h3>
+
+                    Google Sheets
+
+                </h3>
+
+                <p>
+
+                    Appointment information is securely stored,
+                    updated, and managed in real time.
+
+                </p>
+
+            </div>
+
+            <div class="workflow-arrow">
+
+                →
+
+            </div>
+
+            <!-- Step 5 -->
+
+            <div class="workflow-step">
+
+                <div class="workflow-icon">
+
+                    📊
+
+                </div>
+
+                <h3>
+
+                    Dashboard
+
+                </h3>
+
+                <p>
+
+                    Healthcare staff monitor appointment status,
+                    schedules, and patient bookings through
+                    the Remi+ dashboard.
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <!-- Bottom Summary -->
+
+        <div class="workflow-summary">
+
+            <div class="summary-card">
+
+                <h3>
+
+                    Intelligent Automation
+
+                </h3>
+
+                <p>
+
+                    Every appointment request is processed through
+                    AI before being automatically handled by n8n,
+                    stored in Google Sheets, and reflected in the
+                    clinic dashboard without manual intervention.
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ==========================================
+     BENEFITS
+========================================== -->
+
+<section class="benefits" id="benefits">
+
+    <div class="container">
+
+        <div class="section-title">
+
+            <span class="section-tag">
+
+                BENEFITS
+
+            </span>
+
+            <h2>
+
+                Designed for Patients and Healthcare Providers
+
+            </h2>
+
+            <p>
+
+                Remi+ improves the healthcare experience by simplifying
+                appointment management, reducing administrative workload,
+                and providing intelligent assistance whenever it is needed.
+
+            </p>
+
+        </div>
+
+        <div class="benefits-grid">
+
+            <!-- Patients -->
+
+            <div class="benefit-column">
+
+                <div class="benefit-header">
+
+                    👨‍⚕️
+
+                    <h3>
+
+                        For Patients
+
+                    </h3>
+
+                </div>
+
+                <div class="benefit-card">
+
+                    <span>✓</span>
+
+                    <p>
+
+                        Book appointments anytime without calling the clinic.
+
+                    </p>
+
+                </div>
+
+                <div class="benefit-card">
+
+                    <span>✓</span>
+
+                    <p>
+
+                        Receive instant responses through AI-powered chat.
+
+                    </p>
+
+                </div>
+
+                <div class="benefit-card">
+
+                    <span>✓</span>
+
+                    <p>
+
+                        Get automated reminders before appointments.
+
+                    </p>
+
+                </div>
+
+                <div class="benefit-card">
+
+                    <span>✓</span>
+
+                    <p>
+
+                        Easily reschedule or cancel appointments.
+
+                    </p>
+
+                </div>
+
+                <div class="benefit-card">
+
+                    <span>✓</span>
+
+                    <p>
+
+                        Access medication information and healthcare support.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <!-- Providers -->
+
+            <div class="benefit-column">
+
+                <div class="benefit-header">
+
+                    🏥
+
+                    <h3>
+
+                        For Healthcare Providers
+
+                    </h3>
+
+                </div>
+
+                <div class="benefit-card">
+
+                    <span>✓</span>
+
+                    <p>
+
+                        Reduce repetitive administrative tasks.
+
+                    </p>
+
+                </div>
+
+                <div class="benefit-card">
+
+                    <span>✓</span>
+
+                    <p>
+
+                        Manage appointments from one central dashboard.
+
+                    </p>
+
+                </div>
+
+                <div class="benefit-card">
+
+                    <span>✓</span>
+
+                    <p>
+
+                        Minimise missed appointments through automated reminders.
+
+                    </p>
+
+                </div>
+
+                <div class="benefit-card">
+
+                    <span>✓</span>
+
+                    <p>
+
+                        Improve operational efficiency and patient satisfaction.
+
+                    </p>
+
+                </div>
+
+                <div class="benefit-card">
+
+                    <span>✓</span>
+
+                    <p>
+
+                        Save time so staff can focus on delivering better care.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ==========================================
+     FAQ
+========================================== -->
+
+<section class="faq" id="faq">
+
+    <div class="container">
+
+        <div class="section-title">
+
+            <span class="section-tag">
+
+                FAQ
+
+            </span>
+
+            <h2>
+
+                Frequently Asked Questions
+
+            </h2>
+
+            <p>
+
+                Find answers to the most common questions about Remi+ and how it helps
+                patients and healthcare providers.
+
+            </p>
+
+        </div>
+
+        <div class="faq-container">
+
+            <!-- Question 1 -->
+
+            <div class="faq-item">
+
+                <button class="faq-question">
+
+                    <span>What is Remi+?</span>
+
+                    <span class="faq-icon">+</span>
+
+                </button>
+
+                <div class="faq-answer">
+
+                    <p>
+
+                        Remi+ is an AI-powered healthcare appointment assistant that
+                        enables patients to book appointments, receive reminders,
+                        and access healthcare information through natural
+                        conversations while helping clinics automate
+                        administrative tasks.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <!-- Question 2 -->
+
+            <div class="faq-item">
+
+                <button class="faq-question">
+
+                    <span>How do I book an appointment?</span>
+
+                    <span class="faq-icon">+</span>
+
+                </button>
+
+                <div class="faq-answer">
+
+                    <p>
+
+                        Simply chat with Remi+, provide your preferred date and
+                        time, and the AI assistant will guide you through the
+                        booking process. Appointment information is then stored
+                        automatically for clinic staff.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <!-- Question 3 -->
+
+            <div class="faq-item">
+
+                <button class="faq-question">
+
+                    <span>Can I reschedule or cancel my appointment?</span>
+
+                    <span class="faq-icon">+</span>
+
+                </button>
+
+                <div class="faq-answer">
+
+                    <p>
+
+                        Yes. Patients can easily reschedule or cancel their
+                        appointments through the AI assistant without needing
+                        to call the clinic.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <!-- Question 4 -->
+
+            <div class="faq-item">
+
+                <button class="faq-question">
+
+                    <span>Who is Remi+ designed for?</span>
+
+                    <span class="faq-icon">+</span>
+
+                </button>
+
+                <div class="faq-answer">
+
+                    <p>
+
+                        Remi+ is designed for small and medium-sized healthcare
+                        providers such as GP clinics, dental clinics,
+                        physiotherapy centres, specialist clinics, and medical
+                        practices that want to improve appointment management.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <!-- Question 5 -->
+
+            <div class="faq-item">
+
+                <button class="faq-question">
+
+                    <span>Does Remi+ replace healthcare staff?</span>
+
+                    <span class="faq-icon">+</span>
+
+                </button>
+
+                <div class="faq-answer">
+
+                    <p>
+
+                        No. Remi+ supports healthcare professionals by
+                        automating repetitive administrative tasks, allowing
+                        staff to spend more time focusing on patient care.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <!-- Question 6 -->
+
+            <div class="faq-item">
+
+                <button class="faq-question">
+
+                    <span>How does Remi+ improve healthcare services?</span>
+
+                    <span class="faq-icon">+</span>
+
+                </button>
+
+                <div class="faq-answer">
+
+                    <p>
+
+                        Remi+ reduces administrative workload, minimises missed
+                        appointments through automated reminders, provides
+                        24/7 appointment booking, and improves the overall
+                        patient experience with faster access to healthcare
+                        services.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ==========================================
+     CALL TO ACTION
+========================================== -->
+
+<section class="cta" id="contact">
+
+    <div class="container">
+
+        <div class="cta-container">
+
+            <span class="section-tag">
+
+                GET STARTED
+
+            </span>
+
+            <h2>
+
+                Experience Smarter Healthcare with Remi+
+
+            </h2>
+
+            <p>
+
+                Whether you're a patient looking for a faster way to book
+                appointments or a healthcare provider aiming to streamline
+                administrative tasks, Remi+ is here to make healthcare
+                management simpler, smarter, and more efficient.
+
+            </p>
+
+            <div class="cta-buttons">
+
+                <a
+                    href="appointments.html"
+                    class="primary-btn"
+                >
+
+                    Book Appointment
+
+                </a>
+
+                <a
+                    href="ai-chat.html"
+                    class="secondary-btn"
+                >
+
+                    Try AI Assistant
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ==========================================
+     FOOTER
+========================================== -->
+
+<footer class="footer">
+
+    <div class="footer-container">
+
+        <!-- Left -->
+        <div class="footer-left">
+
+            <div class="footer-logo">
+
+                <img
+                    src="images/logo.png"
+                    alt="Remi+ Logo"
+                    class="footer-brand-logo"
+                >
+
+                <h3>
+                    Remi<span>+</span>
+                </h3>
+
+            </div>
+
+            <p>
+                Intelligent Healthcare Appointment Assistant powered by AI,
+                designed to simplify appointment management for patients
+                and healthcare providers.
+            </p>
+
+        </div>
+
+        <!-- Center -->
+        <div class="footer-center">
+
+            <h4>Quick Links</h4>
+
+            <ul>
+
+                <li><a href="#home">Home</a></li>
+
+                <li><a href="#features">Features</a></li>
+
+                <li><a href="#dashboard">Dashboard</a></li>
+
+                <li><a href="#contact">Contact</a></li>
+
+            </ul>
+
+        </div>
+
+        <!-- Right -->
+        <div class="footer-right">
+
+            <h4>Technology</h4>
+
+            <div class="tech-list">
+
+                <span>OpenAI</span>
+
+                <span>n8n</span>
+
+                <span>Google Sheets</span>
+
+                <span>HTML</span>
+
+                <span>CSS</span>
+
+                <span>JavaScript</span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="footer-bottom">
+
+        <p>
+            © 2026 Remi+ AI Appointment Assistant. All Rights Reserved.
+        </p>
+
+        <p>
+            Designed & Developed by Isaac Lam
+        </p>
+
+    </div>
+
+</footer>
 
     <!-- ==========================================
     JAVASCRIPT LIBRARIES
@@ -439,6 +1704,8 @@
 
     <!-- Chat Logic -->
     <script src="js/chat.js"></script>
+
+    <script src="js/main.js"></script>
     
 </body>
 </html>
