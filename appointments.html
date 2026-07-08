@@ -72,501 +72,848 @@
     
     </header>
 
-    <section id="appointments" class="chat-section">
+<section id="appointments" class="chat-section">
 
+    <div class="container">
 
-        <div class="container">
+        <!-- Section Title -->
 
-    
-            <!-- Section Title -->
+        <div class="section-title">
 
-    
-            <div class="section-title">
+            <span class="section-tag">
+                APPOINTMENTS
+            </span>
 
-        
-                <span class="section-tag">
-            
-                    APPOINTMENTS
-        
-                </span>
+            <h2>
+                Client Appointments
+            </h2>
 
-        
-                <h2>
-            
-                    Client Appointments
-        
-                </h2>
+            <p>
+                View, manage and organize your client appointments with ease.
+            </p>
 
-        
-                <p>
-            
-                    View, manage and organize your client appointments with ease.
-        
-                </p>
+        </div>
 
-    
-            </div>
+        <div class="appointment-card">
 
-    
-            <!-- Appointment Card -->
+            <!-- ===================== -->
+            <!-- Dashboard Summary -->
+            <!-- ===================== -->
 
-    
-            <div class="appointment-card">
+            <div class="dashboard-summary">
 
-    
-                <!-- Card Header -->
+                <div class="summary-card upcoming-card">
 
-    
-                <div class="appointment-header">
+                    <div class="summary-icon">
+                        📅
+                    </div>
 
-    
                     <div>
 
-    
-                        <h3>Appointment List</h3>
+                        <span>Upcoming</span>
 
-    
-                        <p>
-                    
-                            All scheduled client appointments.
-                
-                        </p>
-            
+                        <h2 id="upcomingCount">0</h2>
+
+                        <small>Future Appointments</small>
+
                     </div>
-                    
-                    <div class="appointment-actions">
-                        
-                        <input type="text" id="searchInput" placeholder="Search ...">
-                        
-                        <a href="make-an-appointment.html" class="add-btn">+ Add Appointment</a>
-            
+
+                </div>
+
+                <div class="summary-card today-card">
+
+                    <div class="summary-icon">
+                        ⏰
                     </div>
-                
+
+                    <div>
+
+                        <span>Today</span>
+
+                        <h2 id="todayCount">0</h2>
+
+                        <small>Scheduled Today</small>
+
+                    </div>
+
                 </div>
-                
-                <!-- Table -->
-                 
-                <div class="table-responsive">
-                    
-                    <table>
-                        
-                        <thead>
-                            
-                            <tr>
-                                
-                                <th>Appointment Date</th>
-                                
-                                <th>Appointment Time</th>
-                                
-                                <th>Client Name</th>
-                                
-                                <th>Location</th>
-                                
-                                <th>Status</th>
-                                
-                                <th>Remarks</th>
-                                
-                                <th>Actions</th>
-                            
-                            </tr>
-                        
-                        </thead>
-                        
-                        <tbody id="tableBody">
-                            
-                            <tr>
-                                <td colspan="5" class="loading-cell">
-                                    
-                                    Loading appointments...
-                                
-                                </td>
-                            
-                            </tr>
-                        
-                        </tbody>
-                    
-                    </table>
-                
+
+                <div class="summary-card completed-card">
+
+                    <div class="summary-icon">
+                        ✔️
+                    </div>
+
+                    <div>
+
+                        <span>Completed</span>
+
+                        <h2 id="completedCount">0</h2>
+
+                        <small>Completed Visits</small>
+
+                    </div>
+
                 </div>
-            
+
+                <div class="summary-card past-card">
+
+                    <div class="summary-icon">
+                        🗂️
+                    </div>
+
+                    <div>
+
+                        <span>Past</span>
+
+                        <h2 id="pastCount">0</h2>
+
+                        <small>Expired Appointments</small>
+
+                    </div>
+
+                </div>
+
             </div>
-        
+
+            <!-- ===================== -->
+            <!-- Search Row -->
+            <!-- ===================== -->
+
+            <div class="appointment-header">
+
+                <div>
+
+                    <h3>
+                        Appointment Dashboard
+                    </h3>
+
+                    <p>
+
+                        Manage all appointments in one place.
+
+                    </p>
+
+                </div>
+
+                <div class="appointment-actions">
+
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search client, location..."
+                    >
+
+                    <input
+                        type="date"
+                        id="dateFilter"
+                    >
+
+                    <select id="statusFilter">
+
+                        <option value="">
+                            All Status
+                        </option>
+
+                        <option value="Pending">
+                            Pending
+                        </option>
+
+                        <option value="Confirmed">
+                            Confirmed
+                        </option>
+
+                        <option value="Completed">
+                            Completed
+                        </option>
+
+                    </select>
+
+                    <a
+                        href="make-an-appointment.html"
+                        class="add-btn"
+                    >
+
+                        + Add Appointment
+
+                    </a>
+
+                </div>
+
+            </div>
+
+            <!-- ===================== -->
+            <!-- Upcoming Table -->
+            <!-- ===================== -->
+
+            <div class="table-section">
+
+                <div class="table-header">
+
+                    <h3>
+                        📅 Upcoming Appointments
+                    </h3>
+
+                </div>
+
+                <div class="table-responsive">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Date</th>
+
+                                <th>Time</th>
+
+                                <th>Client</th>
+
+                                <th>Location</th>
+
+                                <th>Status</th>
+
+                                <th>Remarks</th>
+
+                                <th>Actions</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="upcomingTableBody">
+
+                            <tr>
+
+                                <td colspan="7" class="loading-cell">
+
+                                    Loading appointments...
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+            <!-- ===================== -->
+            <!-- Past Table -->
+            <!-- ===================== -->
+
+            <div class="table-section">
+
+                <div class="table-header">
+
+                    <h3>
+                        🗂️ Past Appointments
+                    </h3>
+
+                </div>
+
+                <div class="table-responsive">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Date</th>
+
+                                <th>Time</th>
+
+                                <th>Client</th>
+
+                                <th>Location</th>
+
+                                <th>Status</th>
+
+                                <th>Remarks</th>
+
+                                <th>Actions</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="pastTableBody">
+
+                            <tr>
+
+                                <td colspan="7" class="loading-cell">
+
+                                    No past appointments.
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
         </div>
-    
-    </section>
+
+    </div>
+
+</section>
 
     <script>
-        const getWebhookUrl = "https://n8ngc.codeblazar.org/webhook/dashboard";
-const updateWebhookUrl = "https://n8ngc.codeblazar.org/webhook/dashboard-update";
-const deleteWebhookUrl = "https://n8ngc.codeblazar.org/webhook/dashboard-delete";
+        // ======================================================
+// WEBHOOKS
+// ======================================================
 
-// =============================
+const getWebhookUrl =
+"https://n8ngc.codeblazar.org/webhook/dashboard";
+
+const updateWebhookUrl =
+"https://n8ngc.codeblazar.org/webhook/dashboard-update";
+
+const deleteWebhookUrl =
+"https://n8ngc.codeblazar.org/webhook/dashboard-delete";
+
+
+// ======================================================
+// DATE HELPERS
+// ======================================================
+
+function parseAppointment(date,time){
+
+    if(!date) return null;
+
+    return new Date(`${date}T${time || "00:00"}`);
+
+}
+
+function isToday(date){
+
+    const today=new Date();
+
+    return (
+
+        date.getFullYear()===today.getFullYear() &&
+
+        date.getMonth()===today.getMonth() &&
+
+        date.getDate()===today.getDate()
+
+    );
+
+}
+
+function getStatusClass(status){
+
+    switch((status || "").toLowerCase()){
+
+        case "confirmed":
+
+            return "confirmed";
+
+        case "completed":
+
+            return "completed";
+
+        default:
+
+            return "pending";
+
+    }
+
+}
+
+function statusHTML(status){
+
+    return `
+
+        <span class="status-badge ${getStatusClass(status)}">
+
+            ${status || "Pending"}
+
+        </span>
+
+    `;
+
+}
+
+// ======================================================
 // LOAD APPOINTMENTS
-// =============================
+// ======================================================
 
-function loadAppointments() {
-
+function loadAppointments(){
+    
     fetch(getWebhookUrl)
+    
+    .then(response=>response.json())
+    
+    .then(data=>{
+        
+        const upcomingTable=document.getElementById("upcomingTableBody");
+        
+        const pastTable=document.getElementById("pastTableBody");
+        
+        upcomingTable.innerHTML="";
+        
+        pastTable.innerHTML="";
+        
+        let upcomingCount=0;
+        
+        let todayCount=0;
+        
+        let completedCount=0;
+        
+        let pastCount=0;
+        
+        const now=new Date();
+        
+        const upcoming=[];
+        
+        const past=[];
 
-        .then(response => response.json())
+        // ======================================================
+// PROCESS EACH APPOINTMENT
+// ======================================================
 
-        .then(data => {
+data.forEach(row=>{
 
-            const tableBody = document.getElementById("tableBody");
+    const id=row.row_number;
 
-            tableBody.innerHTML = "";
+    const appointmentDate=parseAppointment(
 
-            data.forEach(row => {
+        row["Appointment Date"] || row["Date"],
 
-                const id = row.row_number;
+        row["Time"]
 
-                const mainRow = document.createElement("tr");
+    );
 
-                mainRow.id = `main-row-${id}`;
+    const isPastAppointment=
 
-                mainRow.innerHTML = `
+        appointmentDate &&
+        appointmentDate < now;
 
-                    <td id="display-date-${id}">
-                        <strong>${row["Appointment Date"] || row["Date"] || "N/A"}</strong>
-                    </td>
+    if(appointmentDate){
 
-                    <td id="display-time-${id}">
-                        <strong>${row["Time"] || "N/A"}</strong>
-                    </td>
+        if(isToday(appointmentDate))
+            todayCount++;
 
-                    <td>${row["Client Name"] || "N/A"}</td>
+        if(isPastAppointment)
+            pastCount++;
+        else
+            upcomingCount++;
 
-                    <td id="display-location-${id}">
-                        ${row["Location"] || "-"}
-                    </td>
+    }
 
-                    <td id="display-status-${id}">
-                        <span class="status-badge">
-                            ${row["Status"] || "Pending"}
-                        </span>
-                    </td>
+    if(
 
-                    <td id="display-remarks-${id}">
-                        ${row["Remarks"] || "-"}
-                    </td>
+        (row["Status"] || "").toLowerCase()==="completed"
 
-                    <td>
+    ){
 
-                        <button class="edit-btn"
-                            onclick="toggleEditForm(${id})">
-                            Edit
-                        </button>
+        completedCount++;
 
-                        <button class="delete-btn"
-                            onclick="deleteAppointment(${id})">
-                            Delete
-                        </button>
+    }
 
-                    </td>
+    const mainRow=document.createElement("tr");
 
-                `;
+    mainRow.id=`main-row-${id}`;
 
-                const editRow = document.createElement("tr");
+    mainRow.innerHTML=`
 
-                editRow.id = `edit-form-${id}`;
+        <td id="display-date-${id}">
 
-                editRow.className = "edit-row";
+            <strong>${row["Appointment Date"] || row["Date"] || "-"}</strong>
 
-                editRow.innerHTML = `
+        </td>
 
-                    <td colspan="7">
+        <td id="display-time-${id}">
 
-                        <div class="edit-form-container">
+            <strong>${row["Time"] || "-"}</strong>
 
-                            <h4>Update Appointment</h4>
+        </td>
 
-                            <form
-                                onsubmit="submitUpdate(event,${id})">
+        <td>
 
-                                <div class="edit-grid">
+            ${row["Client Name"] || "-"}
 
-                                    <div>
+        </td>
 
-                                        <label>Date</label>
+        <td id="display-location-${id}">
 
-                                        <input
-                                            type="date"
-                                            id="edit-date-${id}"
-                                            value="${row["Appointment Date"] || row["Date"] || ""}"
-                                            required>
+            ${row["Location"] || "-"}
 
-                                    </div>
+        </td>
 
-                                    <div>
+        <td id="display-status-${id}">
 
-                                        <label>Time</label>
+            ${statusHTML(row["Status"])}
 
-                                        <input
-                                            type="time"
-                                            id="edit-time-${id}"
-                                            value="${row["Time"] || ""}"
-                                            required>
+        </td>
 
-                                    </div>
+        <td id="display-remarks-${id}">
 
-                                    <div>
+            ${row["Remarks"] || "-"}
 
-                                        <label>Location</label>
+        </td>
 
-                                        <input
-                                            type="text"
-                                            id="edit-location-${id}"
-                                            value="${row["Location"] || ""}"
-                                            required>
+        <td>
 
-                                    </div>
+            <button
+                class="edit-btn"
+                onclick="toggleEditForm(${id})">
 
-                                    <div>
+                Edit
 
-                                        <label>Status</label>
+            </button>
 
-                                        <select id="edit-status-${id}">
+            <button
+                class="delete-btn"
+                onclick="deleteAppointment(${id})">
 
-                                            <option value="Pending"
-                                                ${row["Status"]=="Pending"?"selected":""}>
-                                                Pending
-                                            </option>
+                Delete
 
-                                            <option value="Confirmed"
-                                                ${row["Status"]=="Confirmed"?"selected":""}>
-                                                Confirmed
-                                            </option>
+            </button>
 
-                                            <option value="Completed"
-                                                ${row["Status"]=="Completed"?"selected":""}>
-                                                Completed
-                                            </option>
+        </td>
 
-                                        </select>
+    `;
 
-                                    </div>
+    const editRow=document.createElement("tr");
 
-                                    <div style="grid-column:1/-1">
+    editRow.id=`edit-form-${id}`;
 
-                                        <label>Remarks</label>
+    editRow.className="edit-row";
 
-                                        <input
-                                            type="text"
-                                            id="edit-remarks-${id}"
-                                            value="${row["Remarks"] || ""}">
+    editRow.innerHTML=`
 
-                                    </div>
+        <td colspan="7">
 
-                                </div>
+            <div class="edit-form-container">
 
-                                <button
-                                    id="btn-save-${id}"
-                                    class="save-btn">
+                <h4>
 
-                                    Save Changes
+                    Update Appointment
 
-                                </button>
+                </h4>
 
-                            </form>
+                <form
+
+                    onsubmit="submitUpdate(event,${id})">
+
+                    <div class="edit-grid">
+
+                        <div>
+
+                            <label>Date</label>
+
+                            <input
+
+                                type="date"
+
+                                id="edit-date-${id}"
+
+                                value="${row["Appointment Date"] || row["Date"] || ""}"
+
+                                required
+
+                            >
 
                         </div>
 
-                    </td>
+                        <div>
 
-                `;
+                            <label>Time</label>
 
-                tableBody.appendChild(mainRow);
+                            <input
 
-                tableBody.appendChild(editRow);
+                                type="time"
 
-            });
+                                id="edit-time-${id}"
 
-        })
+                                value="${row["Time"] || ""}"
 
-        .catch(() => {
+                                required
 
-            document.getElementById("tableBody").innerHTML = `
+                            >
 
-                <tr>
+                        </div>
 
-                    <td colspan="7"
-                        class="loading-cell">
+                        <div>
 
-                        Unable to load appointments.
+                            <label>Location</label>
 
-                    </td>
+                            <input
 
-                </tr>
+                                type="text"
 
-            `;
+                                id="edit-location-${id}"
+
+                                value="${row["Location"] || ""}"
+
+                                required
+
+                            >
+
+                        </div>
+
+                        <div>
+
+                            <label>Status</label>
+
+                            <select
+
+                                id="edit-status-${id}">
+
+                                <option value="Pending"
+
+                                    ${(row["Status"]==="Pending")?"selected":""}>
+
+                                    Pending
+
+                                </option>
+
+                                <option value="Confirmed"
+
+                                    ${(row["Status"]==="Confirmed")?"selected":""}>
+
+                                    Confirmed
+
+                                </option>
+
+                                <option value="Completed"
+
+                                    ${(row["Status"]==="Completed")?"selected":""}>
+
+                                    Completed
+
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div style="grid-column:1/-1">
+
+                            <label>
+
+                                Remarks
+
+                            </label>
+
+                            <input
+
+                                type="text"
+
+                                id="edit-remarks-${id}"
+
+                                value="${row["Remarks"] || ""}"
+
+                            >
+
+                        </div>
+
+                    </div>
+
+                    <button
+
+                        class="save-btn"
+
+                        id="btn-save-${id}">
+
+                        Save Changes
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        </td>
+
+    `;
+
+    if(isPastAppointment){
+
+        past.push({
+
+            date:appointmentDate,
+
+            mainRow,
+
+            editRow
 
         });
 
-}
+    }else{
 
-// =============================
-// SHOW / HIDE EDIT FORM
-// =============================
+        upcoming.push({
 
-function toggleEditForm(id){
+            date:appointmentDate,
 
-    const form = document.getElementById(`edit-form-${id}`);
+            mainRow,
 
-    form.style.display =
-        form.style.display==="table-row"
-        ? "none"
-        : "table-row";
+            editRow
 
-}
+        });
 
-// =============================
-// UPDATE APPOINTMENT
-// =============================
-
-function submitUpdate(event,id){
-
-    event.preventDefault();
-
-    const btn =
-        document.getElementById(`btn-save-${id}`);
-
-    btn.innerHTML = "Saving...";
-
-    const payload = {
-
-        row_number:id,
-
-        Date:
-            document.getElementById(`edit-date-${id}`).value,
-
-        Time:
-            document.getElementById(`edit-time-${id}`).value,
-
-        Location:
-            document.getElementById(`edit-location-${id}`).value,
-
-        Status:
-            document.getElementById(`edit-status-${id}`).value,
-
-        Remarks:
-            document.getElementById(`edit-remarks-${id}`).value
-
-    };
-
-    fetch(updateWebhookUrl,{
-
-        method:"POST",
-
-        headers:{
-            "Content-Type":"application/json"
-        },
-
-        body:JSON.stringify(payload)
-
-    })
-
-    .then(()=>{
-
-        document.getElementById(`display-date-${id}`).innerHTML =
-        `<strong>${payload.Date}</strong>`;
-
-        document.getElementById(`display-time-${id}`).innerHTML =
-        `<strong>${payload.Time}</strong>`;
-
-        document.getElementById(`display-location-${id}`).innerHTML =
-        payload.Location;
-
-        document.getElementById(`display-status-${id}`).innerHTML =
-        `<span class="status-badge">${payload.Status}</span>`;
-
-        document.getElementById(`display-remarks-${id}`).innerHTML =
-        payload.Remarks;
-
-        btn.innerHTML="Save Changes";
-
-        toggleEditForm(id);
-
-    })
-
-    .catch(()=>{
-
-        alert("Update failed.");
-
-        btn.innerHTML="Save Changes";
-
-    });
-
-}
-
-// =============================
-// DELETE APPOINTMENT
-// =============================
-
-function deleteAppointment(id){
-
-    if(!confirm("Delete this appointment?")) return;
-
-    fetch(deleteWebhookUrl,{
-
-        method:"POST",
-
-        headers:{
-            "Content-Type":"application/json"
-        },
-
-        body:JSON.stringify({
-
-            row_number:id
-
-        })
-
-    })
-
-    .then(()=>{
-
-        document.getElementById(`main-row-${id}`).remove();
-
-        document.getElementById(`edit-form-${id}`).remove();
-
-    })
-
-    .catch(()=>{
-
-        alert("Delete failed.");
-
-    });
-
-}
-
-// =============================
-// SEARCH
-// =============================
-
-document
-.getElementById("searchInput")
-.addEventListener("keyup",function(){
-
-    const filter=this.value.toLowerCase();
-
-    document
-    .querySelectorAll("#tableBody tr")
-    .forEach(row=>{
-
-        row.style.display=
-            row.innerText.toLowerCase().includes(filter)
-            ? ""
-            : "none";
-
-    });
+    }
 
 });
 
-// =============================
-// INITIAL LOAD
-// =============================
+// ======================================================
+// SORT APPOINTMENTS
+// ======================================================
 
-loadAppointments();
+upcoming.sort((a,b)=>{
+
+    if(!a.date && !b.date) return 0;
+
+    if(!a.date) return 1;
+
+    if(!b.date) return -1;
+
+    return a.date-b.date;
+
+});
+
+past.sort((a,b)=>{
+
+    if(!a.date && !b.date) return 0;
+
+    if(!a.date) return 1;
+
+    if(!b.date) return -1;
+
+    return b.date-a.date;
+
+});
+
+
+// ======================================================
+// RENDER UPCOMING TABLE
+// ======================================================
+
+if(upcoming.length===0){
+
+    upcomingTable.innerHTML=`
+
+        <tr>
+
+            <td colspan="7" class="loading-cell">
+
+                No upcoming appointments.
+
+            </td>
+
+        </tr>
+
+    `;
+
+}else{
+
+    upcoming.forEach(item=>{
+
+        upcomingTable.appendChild(item.mainRow);
+
+        upcomingTable.appendChild(item.editRow);
+
+    });
+
+}
+
+
+// ======================================================
+// RENDER PAST TABLE
+// ======================================================
+
+if(past.length===0){
+
+    pastTable.innerHTML=`
+
+        <tr>
+
+            <td colspan="7" class="loading-cell">
+
+                No past appointments.
+
+            </td>
+
+        </tr>
+
+    `;
+
+}else{
+
+    past.forEach(item=>{
+
+        pastTable.appendChild(item.mainRow);
+
+        pastTable.appendChild(item.editRow);
+
+    });
+
+}
+
+
+// ======================================================
+// UPDATE DASHBOARD COUNTERS
+// ======================================================
+
+document.getElementById("upcomingCount").textContent=upcomingCount;
+
+document.getElementById("todayCount").textContent=todayCount;
+
+document.getElementById("completedCount").textContent=completedCount;
+
+document.getElementById("pastCount").textContent=pastCount;
+
+})
+
+.catch(error=>{
+
+    console.error(error);
+
+    document.getElementById("upcomingTableBody").innerHTML=`
+
+        <tr>
+
+            <td colspan="7" class="loading-cell">
+
+                Failed to load appointments.
+
+            </td>
+
+        </tr>
+
+    `;
+
+    document.getElementById("pastTableBody").innerHTML=`
+
+        <tr>
+
+            <td colspan="7" class="loading-cell">
+
+                Failed to load appointments.
+
+            </td>
+
+        </tr>
+
+    `;
+
+});
+
+}
     </script>
+
     <!-- Chat Logic -->
     <script src="js/chat.js"></script>
     
