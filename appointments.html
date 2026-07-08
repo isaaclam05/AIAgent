@@ -1037,73 +1037,76 @@ async function deleteAppointment(id){
 
 function applyFilters(){
 
-    const keyword =
-    document.getElementById("searchInput")
-    .value
-    .toLowerCase();
+    const keyword = document
+        .getElementById("searchInput")
+        .value
+        .toLowerCase()
+        .trim();
 
     const selectedDate =
-    document.getElementById("dateFilter")
-    .value;
+        document.getElementById("dateFilter").value;
 
     const selectedStatus =
-    document.getElementById("statusFilter")
-    .value
-    .toLowerCase();
+        document.getElementById("statusFilter")
+        .value
+        .toLowerCase();
 
     document.querySelectorAll("tbody tr").forEach(row=>{
 
+        // Skip hidden edit forms
         if(row.classList.contains("edit-row")) return;
 
         const text =
-        row.innerText.toLowerCase();
+            row.innerText.toLowerCase();
 
-        const dateCell =
-        row.cells[0] ?
-        row.cells[0].innerText.trim() :
-        "";
+        const date =
+            row.cells[0]
+                ? row.cells[0].innerText.trim()
+                : "";
 
-        const statusCell =
-        row.cells[4] ?
-        row.cells[4].innerText.toLowerCase() :
-        "";
+        const status =
+            row.cells[4]
+                ? row.cells[4].innerText.toLowerCase()
+                : "";
 
         let visible = true;
 
+        // Search
         if(keyword){
 
-            visible =
-            text.includes(keyword);
+            visible = text.includes(keyword);
 
         }
 
+        // Date Filter
         if(visible && selectedDate){
 
-            visible =
-            dateCell.includes(selectedDate);
+            visible = date === selectedDate;
 
         }
 
+        // Status Filter
         if(visible && selectedStatus){
 
-            visible =
-            statusCell.includes(selectedStatus);
+            visible = status.includes(selectedStatus);
 
         }
 
-        row.style.display =
-        visible ? "" : "none";
+        row.style.display = visible ? "" : "none";
 
-        const editRow =
-        document.getElementById(
+        const editRow = document.getElementById(
 
             row.id.replace("main-row","edit-form")
 
         );
 
-        if(editRow && !visible){
+        if(editRow){
 
-            editRow.style.display="none";
+            if(!visible){
+
+                editRow.style.display="none";
+
+            }
 
         }
 
@@ -1118,7 +1121,7 @@ function applyFilters(){
 // ======================================================
 
 document.getElementById("searchInput")
-.addEventListener("keyup",applyFilters);
+.addEventListener("input",applyFilters);
 
 document.getElementById("dateFilter")
 .addEventListener("change",applyFilters);
@@ -1129,12 +1132,33 @@ document.getElementById("statusFilter")
 
 
 // ======================================================
-// AUTO REFRESH
+// REFRESH
 // ======================================================
 
-loadAppointments();
+async function refreshDashboard(){
 
-setInterval(loadAppointments,60000);
+    await loadAppointments();
+
+    applyFilters();
+
+}
+
+
+
+// ======================================================
+// INITIAL LOAD
+// ======================================================
+
+refreshDashboard();
+
+
+
+// ======================================================
+// AUTO REFRESH EVERY 60 SECONDS
+// ======================================================
+
+setInterval(refreshDashboard,60000);
+
     </script>
 
     <!-- Chat Logic -->
