@@ -9033,13 +9033,11 @@ width:100%;
 }
 
 /* =====================================================
-   LOCATION
+   CONTACT PAGE: LOCATION SECTION SPACING
 ===================================================== */
-
-.location-section{
-
-    margin-top:40px;
-
+.location-section {
+    padding-top: 40px !important; /* Overrides the default 110px section padding */
+    margin-top: 0;
 }
 
 .location-grid{
@@ -9910,4 +9908,27 @@ body.dark-mode .faq-item p{
 /* Round the top left corner of the newly visible first column (which is technically the 2nd child in HTML) */
 .markdown-body th:nth-child(2) {
     border-top-left-radius: 12px;
+}
+
+/* =====================================================
+   RESPONSIVE TABLE SCROLL FIX (CORRECTED)
+===================================================== */
+.table-responsive {
+    width: 100% !important;
+    overflow-x: auto !important; /* Forces the horizontal scrollbar */
+    display: block !important;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile devices */
+}
+
+.table-responsive table {
+    width: 100% !important;
+    min-width: 900px !important; /* Forces the table to be wide enough to trigger the scrollbar */
+    border-collapse: collapse;
+}
+
+/* Stop text from wrapping and breaking layout */
+.table-responsive th, 
+.table-responsive td {
+    white-space: nowrap !important; 
+    padding: 16px 24px;
 }
