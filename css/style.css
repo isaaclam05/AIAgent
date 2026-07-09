@@ -1979,50 +1979,6 @@ p{
 }
 
 /* =====================================================
-   TABLE
-===================================================== */
-
-.markdown-body table{
-
-    width:100%;
-
-    margin:24px 0;
-
-    border-collapse:collapse;
-
-    overflow:hidden;
-
-    border-radius:16px;
-
-}
-
-.markdown-body th{
-
-    padding:15px;
-
-    background:#3c4261;
-
-    color:white;
-
-    text-align:left;
-
-}
-
-.markdown-body td{
-
-    padding:15px;
-
-    border-top:1px solid var(--border);
-
-}
-
-.markdown-body tr:nth-child(even){
-
-    background:rgba(255,255,255,.03);
-
-}
-
-/* =====================================================
    IMAGES
 ===================================================== */
 
@@ -9882,4 +9838,76 @@ body.dark-mode .faq-item p{
 
     box-shadow:0 10px 25px rgba(108,99,255,.35);
 
+}
+
+/* =====================================================
+   AI CHAT TABLE STYLING (UPDATED)
+===================================================== */
+
+/* Container: Deeper background, rounded corners, and a subtle shadow */
+.markdown-body table {
+    width: 100%;
+    border-collapse: separate; /* Changed to separate so we can perfectly round the header corners */
+    border-spacing: 0;
+    margin: 24px 0;
+    display: block; 
+    overflow-x: auto; 
+    background-color: rgba(0, 0, 0, 0.18); 
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.15); 
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); 
+}
+
+/* Cells: Bright text and generous padding */
+.markdown-body th,
+.markdown-body td {
+    padding: 16px 24px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08); 
+    color: #f8fafc; 
+    font-size: 0.95rem;
+    white-space: nowrap; 
+}
+
+/* Headers: Solid Custom Purple (#7A60FF) */
+.markdown-body th {
+    background-color: #7A60FF !important; /* Your requested brand color */
+    color: #FFFFFF !important; /* Pure white text for high contrast */
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    border-bottom: none; 
+}
+
+/* Round the top right corner of the header */
+.markdown-body th:last-child {
+    border-top-right-radius: 12px;
+}
+
+/* Hover Effect: Soft purple glow on the row you are reading */
+.markdown-body tr {
+    transition: background-color 0.2s ease;
+}
+
+.markdown-body tr:hover td {
+    background-color: rgba(122, 96, 255, 0.15); 
+}
+
+/* Clean up the very bottom row */
+.markdown-body tr:last-child td {
+    border-bottom: none;
+}
+
+/* =====================================================
+   MAGIC TRICK: HIDE THE "#" COLUMN
+===================================================== */
+.markdown-body table th:first-child,
+.markdown-body table td:first-child {
+    display: none !important;
+}
+
+/* Round the top left corner of the newly visible first column (which is technically the 2nd child in HTML) */
+.markdown-body th:nth-child(2) {
+    border-top-left-radius: 12px;
 }

@@ -150,7 +150,6 @@ const elements = {
     voiceStatus: document.getElementById("voiceStatus")
 };
 
-// BUG FIX: Removed "themeToggle" from this list
 const REQUIRED_ELEMENTS = [
     "messages",
     "userInput",
@@ -219,9 +218,21 @@ initializeUI();
 // SECTION 4: SESSION MANAGEMENT
 // ======================================================
 
+// BUG FIX: Safe UUID generator prevents crashes on local testing environments
+function generateUUID() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
 let sessionId = localStorage.getItem(STORAGE_KEYS.SESSION_ID);
 if (!sessionId) {
-    sessionId = crypto.randomUUID();
+    sessionId = generateUUID();
     localStorage.setItem(STORAGE_KEYS.SESSION_ID, sessionId);
 }
 function getSessionId() { return sessionId; }
@@ -236,13 +247,6 @@ function randomDelay(min = TYPING.minDelay, max = TYPING.maxDelay) { return Math
 function scrollBottom() { messages.scrollTop = messages.scrollHeight; }
 function smoothScrollBottom() { messages.scrollTo({ top: messages.scrollHeight, behavior: "smooth" }); }
 function getCurrentTime() { return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
-
-function appendTimestamp(messageElement) {
-    const time = document.createElement("div");
-    time.className = "message-time";
-    time.textContent = getCurrentTime();
-    messageElement.appendChild(time);
-}
 
 function autoGrowTextarea() {
     userInput.style.height = "56px";
@@ -354,6 +358,7 @@ function createMessage(type) {
     return message;
 }
 
+// BUG FIX: Standardised footer creation to properly house timestamps and buttons
 function attachFooter(messageElement) {
     const footer = document.createElement("div");
     footer.className = "message-footer";
@@ -368,7 +373,7 @@ function addUserMessage(text) {
     const div = createMessage("user");
     div.dataset.raw = text;
     div.textContent = text;
-    appendTimestamp(div);
+    attachFooter(div); // FIX: Keeps layout consistent
     animateMessage(div);
 }
 
@@ -377,7 +382,7 @@ function addBotMessage(markdown) {
     div.dataset.raw = markdown;
     div.innerHTML = renderMarkdown(markdown);
     highlightCode(div);
-    appendTimestamp(div);
+    attachFooter(div); // FIX: Ensures the footer exists so buttons can attach to it on reload
     attachMessageActions(div, markdown);
     animateMessage(div);
 }
@@ -472,6 +477,10 @@ async function askAI(prompt) {
 async function typeBotMessage(markdown) {
     aiTyping();
     const message = createMessage("bot");
+    
+    // BUG FIX: Crucial line added to save the raw markdown to memory during typing
+    message.dataset.raw = markdown; 
+    
     const cursor = addTypingCursor(message);
     const words = markdown.trim().split(/\s+/);
     let currentText = "";
@@ -563,7 +572,8 @@ function saveChatHistory() {
     document.querySelectorAll(".user-message, .bot-message").forEach(msg => {
         history.push({
             role: msg.classList.contains("user-message") ? "user" : "bot",
-            content: msg.dataset.raw || msg.innerText
+            // Fallback ensures no corrupted button text is saved if dataset.raw fails
+            content: msg.dataset.raw || msg.innerText.replace(/📋|🔊|⏹|🔄/g, '').trim()
         });
     });
     localStorage.setItem(STORAGE_KEYS.CHAT_HISTORY, JSON.stringify(history));
@@ -572,7 +582,7 @@ function saveChatHistory() {
 function loadChatHistory() {
     try {
         const history = JSON.parse(localStorage.getItem(STORAGE_KEYS.CHAT_HISTORY));
-        if (!history) return;
+        if (!history || !Array.isArray(history)) return; 
         messages.innerHTML = "";
         history.forEach(item => {
             if (item.role === "user") addUserMessage(item.content);
