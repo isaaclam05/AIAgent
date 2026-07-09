@@ -273,11 +273,11 @@
 // WEBHOOK URLS
 // =====================================================
 
-const WEBHOOK_URL =
+const FETCH_MEDS_WEBHOOK_URL =
 "https://n8ngc.codeblazar.org/webhook/medication-form";
 
 const UPDATE_WEBHOOK_URL =
-"https://n8ngc.codeblazar.org/webhook/update-medication";
+"https://n8ngc.codeblazar.org/webhook/update-medication-too";
 
 const DELETE_WEBHOOK_URL =
 "https://n8ngc.codeblazar.org/webhook/delete-medication";
@@ -288,16 +288,11 @@ const DELETE_WEBHOOK_URL =
 // =====================================================
 
 function convertTimeToMinutes(time) {
-
     if (!time) return 0;
-
     let [hours, minutes] = time.split(":");
-
     hours = parseInt(hours || 0);
     minutes = parseInt(minutes || 0);
-
     return (hours * 60) + minutes;
-
 }
 
 
@@ -306,19 +301,12 @@ function convertTimeToMinutes(time) {
 // =====================================================
 
 function formatTime(time) {
-
     if (!time) return "-";
-
     let [hour, minute] = time.split(":");
-
     hour = parseInt(hour || 0);
-
     const period = hour >= 12 ? "PM" : "AM";
-
     hour = hour % 12 || 12;
-
     return `${hour}:${minute || "00"} ${period}`;
-
 }
 
 // =====================================================
@@ -340,7 +328,7 @@ async function fetchMedications() {
     try {
 
         const response = await fetch(
-            WEBHOOK_URL + "?t=" + new Date().getTime()
+            FETCH_MEDS_WEBHOOK_URL + "?t=" + new Date().getTime()
         );
 
         if (!response.ok) {
@@ -350,7 +338,6 @@ async function fetchMedications() {
         const rawText = await response.text();
 
         if (!rawText.trim()) {
-
             tbody.innerHTML = `
                 <tr>
                     <td colspan="6" class="loading-cell">
@@ -358,7 +345,6 @@ async function fetchMedications() {
                     </td>
                 </tr>
             `;
-
             return;
         }
 
@@ -367,29 +353,15 @@ async function fetchMedications() {
         let medications = [];
 
         if (Array.isArray(data)) {
-
-            if (
-                data.length === 1 &&
-                data[0].data &&
-                Array.isArray(data[0].data)
-            ) {
-
+            if (data.length === 1 && data[0].data && Array.isArray(data[0].data)) {
                 medications = data[0].data;
-
             } else {
-
                 medications = data;
-
             }
-
         } else if (data.data) {
-
             medications = data.data;
-
         } else {
-
             medications = [data];
-
         }
 
         medications.sort((a, b) => {
@@ -407,11 +379,11 @@ async function fetchMedications() {
         medications.forEach(item => {
 
             const rowId =
+                item.ID ||
+                item.id ||
                 item.row_number ||
                 item.RowNumber ||
-                item.rowNumber ||
-                item.ID ||
-                item.id;
+                item.rowNumber;
 
             const patient =
                 item.patientName ||
@@ -442,219 +414,81 @@ async function fetchMedications() {
                 "";
 
             tbody.innerHTML += `
-
-<tr
-id="main-row-${rowId}"
-class="med-row">
-
+<tr id="main-row-${rowId}" class="med-row">
     <td id="display-patient-${rowId}">
         <strong>${patient}</strong>
     </td>
-
     <td id="display-medication-${rowId}">
         ${medication}
     </td>
-
-    <td
-        id="display-time-${rowId}"
-        class="med-time">
-
+    <td id="display-time-${rowId}" class="med-time">
         <span class="status pending">
             ${formatTime(time)}
         </span>
-
     </td>
-
     <td id="display-dosage-${rowId}">
         ${dosage}
     </td>
-
-    <td
-        id="display-frequency-${rowId}"
-        class="med-freq">
-
+    <td id="display-frequency-${rowId}" class="med-freq">
         ${frequency}
-
     </td>
-
     <td class="action-buttons">
-
-        <button
-            class="edit-btn"
-            onclick="editMedication('${rowId}')">
-
-            Edit
-
-        </button>
-
-        <button
-            class="delete-btn"
-            onclick="deleteMedication('${rowId}')">
-
-            Delete
-
-        </button>
-
+        <button class="edit-btn" onclick="editMedication('${rowId}')">Edit</button>
+        <button class="delete-btn" onclick="deleteMedication('${rowId}')">Delete</button>
     </td>
-
 </tr>
 
-<tr
-id="edit-form-${rowId}"
-class="edit-row"
-style="display:none;">
-
-<td colspan="6">
-
-<div class="edit-form-container">
-
-<h3>Edit Medication</h3>
-
-<form
-onsubmit="submitMedicationUpdate(event,'${rowId}')">
-
-<div class="edit-grid">
-
-<div>
-
-<label>Patient Name</label>
-
-<input
-type="text"
-id="edit-patient-${rowId}"
-value="${patient}"
-required>
-
-</div>
-
-<div>
-
-<label>Medication</label>
-
-<input
-type="text"
-id="edit-medication-${rowId}"
-value="${medication}"
-required>
-
-</div>
-
-<div>
-
-<label>Time</label>
-
-<input
-type="time"
-id="edit-time-${rowId}"
-value="${time}"
-required>
-
-</div>
-
-<div>
-
-<label>Dosage</label>
-
-<input
-type="text"
-id="edit-dosage-${rowId}"
-value="${dosage}"
-required>
-
-</div>
-
-<div>
-
-<label>Frequency</label>
-
-<select id="edit-frequency-${rowId}">
-
-<option
-value="Daily"
-${frequency==="Daily" ? "selected" : ""}>
-
-Daily
-
-</option>
-
-<option
-value="Weekly"
-${frequency==="Weekly" ? "selected" : ""}>
-
-Weekly
-
-</option>
-
-<option
-value="As Needed"
-${frequency==="As Needed" ? "selected" : ""}>
-
-As Needed
-
-</option>
-
-</select>
-
-</div>
-
-</div>
-
-<div class="edit-actions">
-
-<button
-type="submit"
-class="btn-submit"
-id="save-btn-${rowId}">
-
-Save Changes
-
-</button>
-
-<button
-type="button"
-class="delete-btn"
-onclick="editMedication('${rowId}')">
-
-Cancel
-
-</button>
-
-</div>
-
-</form>
-
-</div>
-
-</td>
-
-</tr>
-
-`;
-
+<tr id="edit-form-${rowId}" class="edit-row" style="display:none;">
+    <td colspan="6">
+        <div class="edit-form-container">
+            <h3>Edit Medication</h3>
+            <form onsubmit="submitMedicationUpdate(event,'${rowId}')">
+                <div class="edit-grid">
+                    <div>
+                        <label>Patient Name</label>
+                        <input type="text" id="edit-patient-${rowId}" value="${patient}" required>
+                    </div>
+                    <div>
+                        <label>Medication</label>
+                        <input type="text" id="edit-medication-${rowId}" value="${medication}" required>
+                    </div>
+                    <div>
+                        <label>Time</label>
+                        <input type="time" id="edit-time-${rowId}" value="${time}" required>
+                    </div>
+                    <div>
+                        <label>Dosage</label>
+                        <input type="text" id="edit-dosage-${rowId}" value="${dosage}" required>
+                    </div>
+                    <div>
+                        <label>Frequency</label>
+                        <select id="edit-frequency-${rowId}">
+                            <option value="Daily" ${frequency==="Daily" ? "selected" : ""}>Daily</option>
+                            <option value="Weekly" ${frequency==="Weekly" ? "selected" : ""}>Weekly</option>
+                            <option value="As Needed" ${frequency==="As Needed" ? "selected" : ""}>As Needed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="edit-actions">
+                    <button type="submit" class="btn-submit" id="save-btn-${rowId}">Save Changes</button>
+                    <button type="button" class="delete-btn" onclick="editMedication('${rowId}')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </td>
+</tr>`;
         });
-
         applyFilters();
-
-    }
-
-    catch(error) {
-
+    } catch(error) {
         console.error(error);
-
         tbody.innerHTML = `
             <tr>
-                <td colspan="6"
-                    class="loading-cell"
-                    style="color:red;">
-
+                <td colspan="6" class="loading-cell" style="color:red;">
                     Failed to load medications.
-
                 </td>
             </tr>
         `;
-
     }
-
 }
 
 // =====================================================
@@ -662,118 +496,63 @@ Cancel
 // =====================================================
 
 async function deleteMedication(id) {
-
-    if (!confirm("Are you sure you want to delete this medication?")) {
-        return;
-    }
+    if (!confirm("Are you sure you want to delete this medication?")) return;
 
     try {
-
         await fetch(DELETE_WEBHOOK_URL, {
-
             method: "POST",
-
-            headers: {
-                "Content-Type": "application/json"
-            },
-
-            body: JSON.stringify({
-                row_number: id
-            })
-
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ row_number: id })
         });
-
         document.getElementById(`main-row-${id}`)?.remove();
         document.getElementById(`edit-form-${id}`)?.remove();
-
-    }
-
-    catch (error) {
-
+    } catch (error) {
         console.error(error);
-
         alert("Failed to delete medication.");
-
     }
-
 }
-
-
 
 // =====================================================
 // SHOW / HIDE EDIT FORM
 // =====================================================
 
 function editMedication(id) {
-
     document.querySelectorAll(".edit-row").forEach(row => {
-
         if (row.id !== `edit-form-${id}`) {
             row.style.display = "none";
         }
-
     });
 
     const formRow = document.getElementById(`edit-form-${id}`);
-
     if (!formRow) return;
-
-    formRow.style.display =
-        formRow.style.display === "table-row"
-            ? "none"
-            : "table-row";
-
+    formRow.style.display = formRow.style.display === "table-row" ? "none" : "table-row";
 }
-
-
 
 // =====================================================
 // SAVE CHANGES
 // =====================================================
 
 async function submitMedicationUpdate(event, id) {
-
     event.preventDefault();
 
-    const saveButton =
-        document.getElementById(`save-btn-${id}`);
-
+    const saveButton = document.getElementById(`save-btn-${id}`);
     saveButton.disabled = true;
     saveButton.innerText = "Saving...";
 
     const payload = {
-
         row_number: id,
-
-        patientName:
-            document.getElementById(`edit-patient-${id}`).value,
-
-        medication:
-            document.getElementById(`edit-medication-${id}`).value,
-
-        time:
-            document.getElementById(`edit-time-${id}`).value,
-
-        dosage:
-            document.getElementById(`edit-dosage-${id}`).value,
-
-        frequency:
-            document.getElementById(`edit-frequency-${id}`).value
-
+        patientName: document.getElementById(`edit-patient-${id}`).value,
+        medication: document.getElementById(`edit-medication-${id}`).value,
+        time: document.getElementById(`edit-time-${id}`).value,
+        dosage: document.getElementById(`edit-dosage-${id}`).value,
+        frequency: document.getElementById(`edit-frequency-${id}`).value
     };
 
     try {
-
         const response = await fetch(UPDATE_WEBHOOK_URL, {
-
             method: "POST",
-
-            headers: {
-                "Content-Type": "application/json"
-            },
-
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
-
         });
 
         if (!response.ok) {
@@ -781,40 +560,23 @@ async function submitMedicationUpdate(event, id) {
         }
 
         // Update table immediately
-
-        document.getElementById(`display-patient-${id}`).innerHTML =
-            `<strong>${payload.patientName}</strong>`;
-
-        document.getElementById(`display-medication-${id}`).innerHTML =
-            payload.medication;
-
-        document.getElementById(`display-time-${id}`).innerHTML =
-            `<span class="status pending">${formatTime(payload.time)}</span>`;
-
-        document.getElementById(`display-dosage-${id}`).innerHTML =
-            payload.dosage;
-
-        document.getElementById(`display-frequency-${id}`).innerHTML =
-            payload.frequency;
+        document.getElementById(`display-patient-${id}`).innerHTML = `<strong>${payload.patientName}</strong>`;
+        document.getElementById(`display-medication-${id}`).innerHTML = payload.medication;
+        document.getElementById(`display-time-${id}`).innerHTML = `<span class="status pending">${formatTime(payload.time)}</span>`;
+        document.getElementById(`display-dosage-${id}`).innerHTML = payload.dosage;
+        document.getElementById(`display-frequency-${id}`).innerHTML = payload.frequency;
 
         editMedication(id);
 
         saveButton.innerText = "Save Changes";
         saveButton.disabled = false;
 
-    }
-
-    catch(error) {
-
+    } catch(error) {
         console.error(error);
-
         saveButton.innerText = "Save Changes";
         saveButton.disabled = false;
-
         alert("Unable to update medication. Check your n8n workflow.");
-
     }
-
 }
 
 // =====================================================
@@ -822,119 +584,52 @@ async function submitMedicationUpdate(event, id) {
 // =====================================================
 
 function applyFilters() {
-
-    const searchTerm =
-        document.getElementById("searchInput")
-        .value
-        .toLowerCase()
-        .trim();
-
-    const timeFilter =
-        document.getElementById("timeFilter").value;
-
-    const freqFilter =
-        document.getElementById("freqFilter")
-        .value
-        .toLowerCase();
-
-    const rows =
-        document.querySelectorAll("#medTableBody .med-row");
+    const searchTerm = document.getElementById("searchInput").value.toLowerCase().trim();
+    const timeFilter = document.getElementById("timeFilter").value;
+    const freqFilter = document.getElementById("freqFilter").value.toLowerCase();
+    const rows = document.querySelectorAll("#medTableBody .med-row");
 
     rows.forEach(row => {
+        const fullText = row.innerText.toLowerCase();
+        const timeText = row.querySelector(".med-time").innerText.toLowerCase();
+        const freqText = row.querySelector(".med-freq").innerText.toLowerCase();
 
-        const fullText =
-            row.innerText.toLowerCase();
-
-        const timeText =
-            row.querySelector(".med-time")
-            .innerText
-            .toLowerCase();
-
-        const freqText =
-            row.querySelector(".med-freq")
-            .innerText
-            .toLowerCase();
-
-        let matchesSearch =
-            fullText.includes(searchTerm);
-
-        let matchesFrequency =
-            freqFilter === "" ||
-            freqText.includes(freqFilter);
-
+        let matchesSearch = fullText.includes(searchTerm);
+        let matchesFrequency = freqFilter === "" || freqText.includes(freqFilter);
         let matchesTime = true;
 
         if (timeFilter !== "") {
-
             const isAM = timeText.includes("am");
             const isPM = timeText.includes("pm");
-
-            const hour =
-                parseInt(timeText.split(":")[0]);
+            const hour = parseInt(timeText.split(":")[0]);
 
             if (timeFilter === "morning") {
-
-                matchesTime =
-                    (isAM && hour >= 5 && hour <= 11);
-
+                matchesTime = (isAM && hour >= 5 && hour <= 11);
+            } else if (timeFilter === "afternoon") {
+                matchesTime = (isPM && (hour === 12 || hour <= 4));
+            } else if (timeFilter === "evening") {
+                matchesTime = (isPM && hour >= 5) || (isAM && (hour === 12 || hour < 5));
             }
-
-            else if (timeFilter === "afternoon") {
-
-                matchesTime =
-                    (isPM && (hour === 12 || hour <= 4));
-
-            }
-
-            else if (timeFilter === "evening") {
-
-                matchesTime =
-                    (isPM && hour >= 5) ||
-                    (isAM && (hour === 12 || hour < 5));
-
-            }
-
         }
 
-        row.style.display =
-            matchesSearch &&
-            matchesFrequency &&
-            matchesTime
-                ? ""
-                : "none";
-
+        row.style.display = matchesSearch && matchesFrequency && matchesTime ? "" : "none";
     });
-
 }
-
-
 
 // =====================================================
 // FILTER EVENT LISTENERS
 // =====================================================
 
-document
-.getElementById("searchInput")
-.addEventListener("input", applyFilters);
-
-document
-.getElementById("timeFilter")
-.addEventListener("change", applyFilters);
-
-document
-.getElementById("freqFilter")
-.addEventListener("change", applyFilters);
-
-
+document.getElementById("searchInput").addEventListener("input", applyFilters);
+document.getElementById("timeFilter").addEventListener("change", applyFilters);
+document.getElementById("freqFilter").addEventListener("change", applyFilters);
 
 // =====================================================
 // PAGE LOAD
 // =====================================================
 
 window.addEventListener("load", () => {
-
     fetchMedications();
-
 });
 
 </script>
