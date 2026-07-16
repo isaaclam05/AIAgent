@@ -167,6 +167,44 @@
                 justify-content: center;
             }
         }
+
+        /* =========================================================
+           ACTION BUTTONS & TABLE CELL FIXES
+        ========================================================= */
+        .action-buttons {
+            display: flex;
+            gap: 8px; /* Adds space between Edit and Delete buttons */
+            align-items: center;
+            white-space: nowrap; /* Prevents text from breaking */
+        }
+
+        /* Base styles to prevent the buttons from squishing */
+        .action-buttons button {
+            flex-shrink: 0; /* Forces buttons to maintain their natural width */
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Delete Button specific styling (in case it's missing from style.css) */
+        .delete-btn {
+            background-color: #ff4757;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background-color: #ff1e34;
+        }
+
+        /* Optional: Ensure the action column is wide enough */
+        th:last-child, 
+        td.action-buttons {
+            min-width: 150px;
+        }
     </style>
 </head>
 <body>
